@@ -3,6 +3,6 @@
 
 tests/*
 out/*
-.idea/*
+.idea/workspace.xml
 
 *.out
