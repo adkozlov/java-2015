@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="tasks02:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/tasks02</output-path>
+    <root id="archive" name="tasks02.jar">
+      <element id="module-output" name="tasks02" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/lib/annotations.jar" path-in-jar="/" />
+      <element id="library" level="project" name="org.jetbrains:annotations:13.0" />
+      <element id="directory" name="src">
+        <element id="dir-copy" path="$PROJECT_DIR$/tasks02/src" />
+      </element>
+    </root>
+  </artifact>
+</component>

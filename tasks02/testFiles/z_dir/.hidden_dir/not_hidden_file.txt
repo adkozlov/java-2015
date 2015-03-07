@@ -1,0 +1,1 @@
+not hidden file in the hidden folder
