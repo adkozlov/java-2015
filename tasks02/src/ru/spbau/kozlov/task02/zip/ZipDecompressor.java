@@ -3,14 +3,11 @@ package ru.spbau.kozlov.task02.zip;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.spbau.kozlov.task02.zip.utils.IOUtils;
-import ru.spbau.kozlov.task02.zip.utils.PathUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.zip.ZipInputStream;
 
 /**
  * The {@link ru.spbau.kozlov.task02.zip.ZipDecompressor} class implements zip-decompressor.
@@ -18,22 +15,15 @@ import java.util.zip.ZipInputStream;
  *
  * @author adkozlov
  */
-public class ZipDecompressor extends ExceptionsContainer {
-
-    @NotNull
-    private final ZipInputStream zipInputStream;
-    @NotNull
-    private final DataInputStream dataInputStream;
-
+public class ZipDecompressor extends AbstractZipEntryVisitor {
     /**
      * Constructs a new decompressor with the specified input archive file path.
      *
      * @param inputFilePath the path to the input archive
-     * @throws IOException if an I/O error occurs during opening the archive file
+     * @throws java.io.IOException if an I/O error occurs during opening the archive file
      */
     public ZipDecompressor(@NotNull Path inputFilePath) throws IOException {
-        zipInputStream = new ZipInputStream(Files.newInputStream(inputFilePath));
-        dataInputStream = new DataInputStream(new BufferedInputStream(zipInputStream));
+        super(inputFilePath);
     }
 
     /**
@@ -42,89 +32,48 @@ public class ZipDecompressor extends ExceptionsContainer {
      * @throws IOException if an I/O error occurs during reading the archive file
      */
     public void extractAllEntries() throws IOException {
-        readAllEntries(true);
+        visitAllEntries();
     }
 
     /**
-     * Closes this compressor and releases any system resources associated with it.
+     * Writes the entry content to the specified file.
      *
-     * @throws IOException if an I/O error occurs
+     * @param path a path of the specified entry
+     * @param content an array of bytes containing the entry content
      */
     @Override
-    public void close() throws IOException {
-        try {
-            dataInputStream.close();
-        } catch (IOException e) {
-            addContainedExceptionTo(e);
-            throw e;
-        }
-
-        super.close();
-    }
-
-    /**
-     * Reads all entries contained in the archive file and writes them to appropriate files if the argument is {@code true}.
-     *
-     * @param write {@code true} if read files should be created
-     * @return a list of entries paths
-     * @throws IOException if an I/O error occurs during reading the archive file
-     */
-    @NotNull
-    protected LinkedList<String> readAllEntries(boolean write) throws IOException {
-        zipInputStream.getNextEntry();
-
-        LinkedList<String> result = new LinkedList<>();
-        while (dataInputStream.available() > 0) {
-            dataInputStream.mark(1);
-            if (dataInputStream.read() == -1) {
-                break;
-            } else {
-                dataInputStream.reset();
-            }
-
-            String path = dataInputStream.readUTF();
-            long length = dataInputStream.readLong();
-            byte[] content = length != -1 ? readEntryContent(length) : null;
-            result.add(path);
-
-            if (write) {
-                writeEntryContent(Paths.get(PathUtils.convertArchivePathToOSPath(path)), content);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Reads the entry content from the archive file.
-     *
-     * @param length the number of bytes to be read
-     * @return an array of bytes read from the archive file
-     * @throws IOException if an I/O error occurred during the reading the archive file
-     */
-    @NotNull
-    protected byte[] readEntryContent(long length) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        IOUtils.copy(dataInputStream, byteArrayOutputStream, length);
-        return byteArrayOutputStream.toByteArray();
+    protected void onEntryVisit(@NotNull Path path, @Nullable byte[] content) {
+        writeEntryContent(path, content);
     }
 
     private void writeEntryContent(@NotNull Path path, @Nullable byte[] content) {
         if (content != null) {
             Path parentPath = path.getParent();
-            if (parentPath != null && !Files.isWritable(parentPath)) {
-                addException(String.format("Directory \'%s\' cannot be written to\n", parentPath.toString()));
-            } else {
-                try {
-                    IOUtils.writeContent(Files.newOutputStream(path), content);
-                } catch (IOException e) {
-                    addException(e);
+            try {
+                if (parentPath != null && !Files.isWritable(parentPath)) {
+                    addException(String.format("Directory \'%s\' cannot be written to\n", parentPath.toString()));
+                    return;
                 }
+            } catch (SecurityException e) {
+                addException(String.format("Directory \'%s\' writing permissions cannot be determined because of the security violation", path.toString()), e);
+                return;
+            }
+
+            try {
+                IOUtils.writeContent(Files.newOutputStream(path), content);
+            } catch (IOException e) {
+                addException(e);
+            } catch (SecurityException e) {
+                addException(String.format("File \'%s\' cannot be created because of the security violation", path.toString()), e);
             }
         } else {
             File dir = path.toFile();
-            if (!dir.exists() && !dir.mkdirs()) {
-                addException(String.format("Directory \'%s\' cannot be created\n", path.toString()));
+            try {
+                if (!dir.exists() && !dir.mkdirs()) {
+                    addException(String.format("Directory \'%s\' cannot be created\n", path.toString()));
+                }
+            } catch (SecurityException e) {
+                addException(String.format("Directory \'%s\' cannot be created because of the security violation\n", path.toString()), e);
             }
         }
     }

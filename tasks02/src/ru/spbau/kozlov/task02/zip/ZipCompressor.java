@@ -40,8 +40,9 @@ public class ZipCompressor extends ExceptionsContainer {
      *
      * @param outputFilePath the path to the output archive
      * @throws IOException if an I/O error occurs during creating the archive file
+     * @throws SecurityException if the archive file cannot be created because of the security violation
      */
-    public ZipCompressor(@NotNull Path outputFilePath) throws IOException {
+    public ZipCompressor(@NotNull Path outputFilePath) throws IOException, SecurityException {
         zipOutputStream = new ZipOutputStream(Files.newOutputStream(outputFilePath));
         dataOutputStream = new DataOutputStream(zipOutputStream);
         zipOutputStream.putNextEntry(new ZipEntry("root"));
@@ -83,32 +84,35 @@ public class ZipCompressor extends ExceptionsContainer {
                 zipOutputStream.closeEntry();
             }
         } catch (IOException e) {
-            addContainedExceptionTo(e);
-            throw e;
+            addException(e);
+        } finally {
+            super.close();
         }
-
-        super.close();
     }
 
     private void putNextEntry(@NotNull Path path) throws IOException {
         final String pathString = path.toString();
         try {
             if (!Files.isReadable(path)) {
-                addException(String.format("File \'%s\' cannot be read\n", pathString));
+                addException(String.format("File \'%s\' cannot be read", pathString));
                 return;
             }
         } catch (SecurityException e) {
-            addException(String.format("File \'%s\' cannot be read because of security violation\n", pathString));
+            addException(String.format("File \'%s\' reading permissions cannot be determined because of the security violation", pathString), e);
             return;
         }
 
-        if (Files.isRegularFile(path)) {
-            byte[] data = readFileContent(path);
-            if (data != null) {
-                writeEntry(pathString, data);
+        try {
+            if (Files.isRegularFile(path)) {
+                byte[] data = readFileContent(path);
+                if (data != null) {
+                    writeEntry(pathString, data);
+                }
+            } else if (Files.isDirectory(path)) {
+                putNextDirEntry(path);
             }
-        } else if (Files.isDirectory(path)) {
-            putNextDirEntry(path);
+        } catch (SecurityException e) {
+            addException(String.format("Type of the file \'%s\' cannot be determined because of the security violation", pathString), e);
         }
     }
 
@@ -120,46 +124,50 @@ public class ZipCompressor extends ExceptionsContainer {
     }
 
     private void putNextDirEntry(@NotNull Path path) throws IOException {
-        Files.walkFileTree(path, new FileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(@NotNull Path dir, @Nullable BasicFileAttributes attrs) throws IOException {
-                if (directoryIsEmpty(dir)) {
-                    return FileVisitResult.TERMINATE;
-                } else {
-                    writeDirEntry(dir.toString());
+        try {
+            Files.walkFileTree(path, new FileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(@NotNull Path dir, @Nullable BasicFileAttributes attrs) throws IOException {
+                    if (directoryIsEmpty(dir)) {
+                        return FileVisitResult.TERMINATE;
+                    } else {
+                        writeDirEntry(dir.toString());
+                        return FileVisitResult.CONTINUE;
+                    }
+                }
+
+                private boolean directoryIsEmpty(@NotNull Path dir) {
+                    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
+                        return !directoryStream.iterator().hasNext();
+                    } catch (IOException e) {
+                        addException(e);
+                    }
+                    return true;
+                }
+
+                @Override
+                public FileVisitResult visitFile(@NotNull Path file, @Nullable BasicFileAttributes attrs) throws IOException {
+                    putNextEntry(file);
                     return FileVisitResult.CONTINUE;
                 }
-            }
 
-            private boolean directoryIsEmpty(@NotNull Path dir) {
-                try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
-                    return !directoryStream.iterator().hasNext();
-                } catch (IOException e) {
+                @Override
+                public FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException e) {
                     addException(e);
+                    return FileVisitResult.CONTINUE;
                 }
-                return true;
-            }
 
-            @Override
-            public FileVisitResult visitFile(@NotNull Path file, @Nullable BasicFileAttributes attrs) throws IOException {
-                putNextEntry(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException e) {
-                addException(e);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(@NotNull Path dir, @Nullable IOException e) {
-                if (e != null) {
-                    addException(e);
+                @Override
+                public FileVisitResult postVisitDirectory(@NotNull Path dir, @Nullable IOException e) {
+                    if (e != null) {
+                        addException(e);
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
-                return FileVisitResult.CONTINUE;
-            }
-        });
+            });
+        } catch (SecurityException e) {
+            addException(String.format("Directory \'%s\' cannot be read because of the security violation", path.toString()), e);
+        }
     }
 
     @Nullable
@@ -168,6 +176,8 @@ public class ZipCompressor extends ExceptionsContainer {
             return IOUtils.readContent(Files.newInputStream(path));
         } catch (IOException e) {
             addException(e);
+        } catch (SecurityException e) {
+            addException(String.format("File \'%s\' cannot be read because of the security violation", path.toString()), e);
         }
         return null;
     }

@@ -22,8 +22,6 @@ public abstract class ExceptionsContainer implements Closeable {
      * Closes the resource and throws the first exception contained in the storage.
      * Other exceptions will be added as suppressed. If no error had occurred, no exception will be thrown.
      *
-     * If an I/O error occurs during inheritor's {@code close()} method call, stored exceptions should be add as suppressed with the {@link ru.spbau.kozlov.task02.zip.ExceptionsContainer#addContainedExceptionTo} method.
-     *
      * @throws IOException if container contains I/O errors
      */
     @Override
@@ -63,16 +61,5 @@ public abstract class ExceptionsContainer implements Closeable {
      */
     protected void addException(@NotNull String message) {
         addException(new IOException(message));
-    }
-
-    /**
-     * Adds all the stored exception as suppressed to the specified exception.
-     *
-     * @param exception an error that occurred during inheritor's {@code close()} method call
-     */
-    protected void addContainedExceptionTo(@NotNull IOException exception) {
-        if (containedException != null) {
-            exception.addSuppressed(containedException);
-        }
     }
 }

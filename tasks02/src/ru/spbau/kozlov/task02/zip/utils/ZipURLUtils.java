@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author adkozlov
  */
-public class ZipURLUtils {
+public final class ZipURLUtils {
 
     private static final String HTTP_PREFIX = "http";
     private static final String URL_PREFIX = HTTP_PREFIX + "://";

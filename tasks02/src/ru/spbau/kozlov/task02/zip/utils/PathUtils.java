@@ -5,12 +5,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 /**
- * The {@link ru.spbau.kozlov.task02.zip.utils.PathUtils} class contains methods for converting URLs and filesystem paths to the path format used by {@link ru.spbau.kozlov.task02.zip.ZipCompressor} and {@link ru.spbau.kozlov.task02.zip.ZipDecompressor} classes.
+ * The {@link ru.spbau.kozlov.task02.zip.utils.PathUtils} class contains methods for converting URLs and filesystem paths to the path format used by {@link ru.spbau.kozlov.task02.zip.ZipCompressor} and {@link ru.spbau.kozlov.task02.zip.AbstractZipEntryVisitor} classes.
  * Filesystem paths could be OS dependent.
  *
  * @author adkozlov
  */
-public class PathUtils {
+public final class PathUtils {
 
     public static final String ARCHIVE_FILE_SEPARATOR = "/";
 

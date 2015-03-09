@@ -50,7 +50,7 @@ public class Main {
             for (String entry : entries) {
                 zipCompressor.putNextEntry(entry);
             }
-        } catch (IOException e) {
+        } catch (IOException | SecurityException e) {
             printExceptionsRecursively(e);
         }
     }
@@ -58,7 +58,7 @@ public class Main {
     private static void decompress(@NotNull Path inputFilePath) {
         try (ZipDecompressor zipDecompressor = new ZipDecompressor(inputFilePath)) {
             zipDecompressor.extractAllEntries();
-        } catch (IOException e) {
+        } catch (IOException | SecurityException e) {
             printExceptionsRecursively(e);
         }
     }
@@ -66,7 +66,7 @@ public class Main {
     private static void list(@NotNull Path inputFilePath) {
         try (ZipLister zipLister = new ZipLister(inputFilePath)) {
             System.out.println(zipLister.listAllEntries());
-        } catch (IOException e) {
+        } catch (IOException | SecurityException e) {
             printExceptionsRecursively(e);
         }
     }
