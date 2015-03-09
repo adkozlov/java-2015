@@ -3,15 +3,17 @@ package ru.spbau.kozlov.task02;
 import org.jetbrains.annotations.NotNull;
 import ru.spbau.kozlov.task02.zip.ZipCompressor;
 import ru.spbau.kozlov.task02.zip.ZipDecompressor;
+import ru.spbau.kozlov.task02.zip.ZipLister;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**
- * The {@link ru.spbau.kozlov.task02.Main} class implements zip-archiver.
+ * The {@link ru.spbau.kozlov.task02.Main} class implements zip-archiver command-line tool.
+ * Files, directories and web pages are allowed. Empty directories are ignored.
+ * If file or directory cannot be read or written to, it is skipped. Invalid URLs are also skipped.
  *
  * @author adkozlov
  */
@@ -33,10 +35,10 @@ public class Main {
                 compress(path, Arrays.copyOfRange(args, 2, args.length));
                 break;
             case "decompress":
-                decompress(path, true);
+                decompress(path);
                 break;
             case "list":
-                decompress(path, false);
+                list(path);
                 break;
             default:
                 printUsageAndExit();
@@ -48,32 +50,31 @@ public class Main {
             for (String entry : entries) {
                 zipCompressor.putNextEntry(entry);
             }
-        } catch (MalformedURLException e) {
-            System.err.println("URL is not valid: " + e.getMessage());
-            printSuppressedExceptions(e);
         } catch (IOException e) {
-            System.err.println("I/O error occurred during compression: " + e.getMessage());
-            printSuppressedExceptions(e);
+            printExceptionsRecursively(e);
         }
     }
 
-    private static void decompress(@NotNull Path inputFilePath, boolean write) {
+    private static void decompress(@NotNull Path inputFilePath) {
         try (ZipDecompressor zipDecompressor = new ZipDecompressor(inputFilePath)) {
-            if (write) {
-                zipDecompressor.extractAllEntries();
-            } else {
-                zipDecompressor.listAllEntries();
-            }
+            zipDecompressor.extractAllEntries();
         } catch (IOException e) {
-            System.err.println("I/O error occurred during decompression: " + e.getMessage());
-            printSuppressedExceptions(e);
+            printExceptionsRecursively(e);
         }
     }
 
-    private static void printSuppressedExceptions(@NotNull Throwable throwable) {
+    private static void list(@NotNull Path inputFilePath) {
+        try (ZipLister zipLister = new ZipLister(inputFilePath)) {
+            System.out.println(zipLister.listAllEntries());
+        } catch (IOException e) {
+            printExceptionsRecursively(e);
+        }
+    }
+
+    private static void printExceptionsRecursively(@NotNull Throwable throwable) {
         System.err.println("Error occurred: " + throwable);
         for (Throwable suppressed : throwable.getSuppressed()) {
-            printSuppressedExceptions(suppressed);
+            printExceptionsRecursively(suppressed);
         }
     }
 

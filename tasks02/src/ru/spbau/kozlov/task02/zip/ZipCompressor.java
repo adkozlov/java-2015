@@ -2,8 +2,12 @@ package ru.spbau.kozlov.task02.zip;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.spbau.kozlov.task02.zip.utils.IOUtils;
+import ru.spbau.kozlov.task02.zip.utils.PathUtils;
+import ru.spbau.kozlov.task02.zip.utils.ZipURLUtils;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.*;
@@ -14,32 +18,28 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * The {@link ZipCompressor} class implements zip-compressor.
+ * The {@link ru.spbau.kozlov.task02.zip.ZipCompressor} class implements zip-compressor.
  * Files, directories and web pages (specified with URL) are allowed.
+ * If file or directory cannot be read, it is skipped. Invalid URLs are also skipped.
  *
  * @author adkozlov
  */
-public class ZipCompressor implements Closeable {
-
-    static final String HTTP_PREFIX = "http";
-    private static final String URL_PREFIX = HTTP_PREFIX + "://";
+public class ZipCompressor extends ExceptionsContainer {
 
     @NotNull
     private final ZipOutputStream zipOutputStream;
     @NotNull
     private final DataOutputStream dataOutputStream;
     @NotNull
-    private final List<Path> paths = new LinkedList<>();
-    @NotNull
     private final List<URL> urls = new LinkedList<>();
 
-    private boolean errorOccurred = false;
+    private boolean ioErrorOccurred = false;
 
     /**
-     * Constructs a new compressor.
+     * Constructs a new compressor with the specified output archive file path.
      *
      * @param outputFilePath the path to the output archive
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs during creating the archive file
      */
     public ZipCompressor(@NotNull Path outputFilePath) throws IOException {
         zipOutputStream = new ZipOutputStream(Files.newOutputStream(outputFilePath));
@@ -52,17 +52,16 @@ public class ZipCompressor implements Closeable {
      * Directories are added recursively, empty directories are ignored.
      *
      * @param entry the path to the specified entry or URL
-     * @throws MalformedURLException if entry is not a valid URL
+     * @throws IOException if an I/O error occurs during writing to the archive file
      */
-    public void putNextEntry(@NotNull String entry) throws MalformedURLException {
-        if (!entry.startsWith(URL_PREFIX)) {
-            paths.add(Paths.get(entry));
+    public void putNextEntry(@NotNull String entry) throws IOException {
+        if (!ZipURLUtils.isURL(entry)) {
+            putNextEntry(Paths.get(entry));
         } else {
             try {
                 urls.add(new URL(entry));
             } catch (MalformedURLException e) {
-                errorOccurred = true;
-                throw e;
+                addException(String.format("\'%s\' is not a valid URL", entry), e);
             }
         }
     }
@@ -75,43 +74,49 @@ public class ZipCompressor implements Closeable {
     @Override
     public void close() throws IOException {
         try (DataOutputStream ignored = dataOutputStream) {
-            if (!errorOccurred) {
-                for (Path path : paths) {
-                    putNextEntry(path);
-                }
+            writeDirEntry(ZipURLUtils.getUrlDirectoryName());
+            for (URL url : urls) {
+                putNextEntry(url);
+            }
 
-                writeDirEntry(HTTP_PREFIX);
-                for (URL url : urls) {
-                    putNextEntry(url);
-                }
-
+            if (!ioErrorOccurred) {
                 zipOutputStream.closeEntry();
             }
+        } catch (IOException e) {
+            addContainedExceptionTo(e);
+            throw e;
         }
+
+        super.close();
     }
 
     private void putNextEntry(@NotNull Path path) throws IOException {
         final String pathString = path.toString();
         try {
             if (!Files.isReadable(path)) {
-                System.err.printf("File %s cannot be read\n", pathString);
+                addException(String.format("File \'%s\' cannot be read\n", pathString));
                 return;
             }
         } catch (SecurityException e) {
-            System.err.printf("File %s cannot be read because of security violation\n", pathString);
+            addException(String.format("File \'%s\' cannot be read because of security violation\n", pathString));
             return;
         }
 
         if (Files.isRegularFile(path)) {
-            writeEntry(pathString, Files.size(path), readContent(Files.newInputStream(path)));
+            byte[] data = readFileContent(path);
+            if (data != null) {
+                writeEntry(pathString, data);
+            }
         } else if (Files.isDirectory(path)) {
             putNextDirEntry(path);
         }
     }
 
     private void putNextEntry(@NotNull URL url) throws IOException {
-        byte[] data = readContent(url.openConnection().getInputStream());
-        writeEntry(url.toString().replaceAll("/", "_").replaceFirst(":__", "/"), data.length, data);
+        byte[] data = readURLContent(url);
+        if (data != null) {
+            writeEntry(url.toString(), data);
+        }
     }
 
     private void putNextDirEntry(@NotNull Path path) throws IOException {
@@ -126,10 +131,13 @@ public class ZipCompressor implements Closeable {
                 }
             }
 
-            private boolean directoryIsEmpty(@NotNull Path dir) throws IOException {
+            private boolean directoryIsEmpty(@NotNull Path dir) {
                 try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
                     return !directoryStream.iterator().hasNext();
+                } catch (IOException e) {
+                    addException(e);
                 }
+                return true;
             }
 
             @Override
@@ -139,42 +147,58 @@ public class ZipCompressor implements Closeable {
             }
 
             @Override
-            public FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException e) throws IOException {
-                System.err.printf("File %s cannot be read because of I/O error: %s\n", file.toString(), e.getMessage());
+            public FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException e) {
+                addException(e);
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(@NotNull Path dir, @Nullable IOException e) throws IOException {
+            public FileVisitResult postVisitDirectory(@NotNull Path dir, @Nullable IOException e) {
                 if (e != null) {
-                    System.err.printf("I/O error occurred: %s", e.getMessage());
+                    addException(e);
                 }
                 return FileVisitResult.CONTINUE;
             }
         });
     }
 
-    @NotNull
-    private byte[] readContent(@NotNull InputStream inputStream) throws IOException {
-        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            copy(bufferedInputStream, byteArrayOutputStream);
-            return byteArrayOutputStream.toByteArray();
+    @Nullable
+    private byte[] readFileContent(@NotNull Path path) {
+        try {
+            return IOUtils.readContent(Files.newInputStream(path));
+        } catch (IOException e) {
+            addException(e);
         }
+        return null;
     }
 
-    private static void copy(@NotNull BufferedInputStream bufferedInputStream, @NotNull OutputStream outputStream) throws IOException {
-        while (bufferedInputStream.available() > 0) {
-            outputStream.write(bufferedInputStream.read());
+    @Nullable
+    private byte[] readURLContent(@NotNull URL url) {
+        try {
+            return IOUtils.readContent(url.openConnection().getInputStream());
+        } catch (IOException e) {
+            addException(e);
         }
+        return null;
     }
 
     private void writeEntry(@NotNull String path, long length, @Nullable byte[] content) throws IOException {
-        dataOutputStream.writeUTF(path);
-        dataOutputStream.writeLong(length);
-        if (content != null) {
-            dataOutputStream.write(content);
+        if (!ioErrorOccurred) {
+            try {
+                dataOutputStream.writeUTF(ZipURLUtils.isURL(path) ? PathUtils.convertUrlToArchivePath(path) : PathUtils.convertOSPathToArchivePath(path));
+                dataOutputStream.writeLong(length);
+                if (content != null) {
+                    dataOutputStream.write(content);
+                }
+            } catch (IOException e) {
+                ioErrorOccurred = true;
+                throw e;
+            }
         }
+    }
+
+    private void writeEntry(@NotNull String path, @NotNull byte[] content) throws IOException {
+        writeEntry(path, content.length, content);
     }
 
     private void writeDirEntry(@NotNull String path) throws IOException {

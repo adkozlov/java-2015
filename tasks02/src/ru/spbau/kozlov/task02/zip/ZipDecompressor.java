@@ -1,20 +1,24 @@
 package ru.spbau.kozlov.task02.zip;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import ru.spbau.kozlov.task02.zip.utils.IOUtils;
+import ru.spbau.kozlov.task02.zip.utils.PathUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.zip.ZipInputStream;
 
 /**
  * The {@link ru.spbau.kozlov.task02.zip.ZipDecompressor} class implements zip-decompressor.
+ * If extracted file cannot be placed to the file system, it is skipped. Web pages contained by the archive are extracted to the "http" directory.
  *
  * @author adkozlov
  */
-public class ZipDecompressor implements Closeable {
+public class ZipDecompressor extends ExceptionsContainer {
 
     @NotNull
     private final ZipInputStream zipInputStream;
@@ -22,10 +26,10 @@ public class ZipDecompressor implements Closeable {
     private final DataInputStream dataInputStream;
 
     /**
-     * Constructs a new decompressor.
+     * Constructs a new decompressor with the specified input archive file path.
      *
      * @param inputFilePath the path to the input archive
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs during opening the archive file
      */
     public ZipDecompressor(@NotNull Path inputFilePath) throws IOException {
         zipInputStream = new ZipInputStream(Files.newInputStream(inputFilePath));
@@ -33,43 +37,12 @@ public class ZipDecompressor implements Closeable {
     }
 
     /**
-     * Extracts archive content to the current folder.
+     * Extracts the archive content to the current folder.
      *
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs during reading the archive file
      */
     public void extractAllEntries() throws IOException {
-        getAllEntries(true);
-    }
-
-    /**
-     * Prints a string representation of the file tree contained in the archive to the standard out.
-     *
-     * @throws IOException IOException if an I/O error occurs
-     */
-    public void listAllEntries() throws IOException {
-        ArrayList<String> paths = getAllEntries(false);
-        paths.add("");
-        String[][] splitPaths = new String[paths.size()][];
-        splitPaths[splitPaths.length - 1] = new String[0];
-
-        for (int i = splitPaths.length - 2; i >= 0; i--) {
-            splitPaths[i] = paths.get(i).split(File.separator);
-            String[] current = splitPaths[i];
-            boolean isUrl = current[0].equals(ZipCompressor.HTTP_PREFIX) && current.length != 1;
-
-            for (int j = 0; j < current.length - 1; j++) {
-                String prefix = !isUrl && j < splitPaths[i + 1].length ? "| " : "  ";
-                current[j] = prefix + new String(new char[current[j].length()]).replaceAll("\0", " ");
-            }
-            current[current.length - 1] = "|_" + current[current.length - 1];
-        }
-
-        for (int i = 0; i < splitPaths.length - 1; i++) {
-            for (String segment : splitPaths[i]) {
-                System.out.print(segment);
-            }
-            System.out.println();
-        }
+        readAllEntries(true);
     }
 
     /**
@@ -79,14 +52,28 @@ public class ZipDecompressor implements Closeable {
      */
     @Override
     public void close() throws IOException {
-        dataInputStream.close();
+        try {
+            dataInputStream.close();
+        } catch (IOException e) {
+            addContainedExceptionTo(e);
+            throw e;
+        }
+
+        super.close();
     }
 
+    /**
+     * Reads all entries contained in the archive file and writes them to appropriate files if the argument is {@code true}.
+     *
+     * @param write {@code true} if read files should be created
+     * @return a list of entries paths
+     * @throws IOException if an I/O error occurs during reading the archive file
+     */
     @NotNull
-    private ArrayList<String> getAllEntries(boolean write) throws IOException {
+    protected LinkedList<String> readAllEntries(boolean write) throws IOException {
         zipInputStream.getNextEntry();
 
-        ArrayList<String> result = new ArrayList<>();
+        LinkedList<String> result = new LinkedList<>();
         while (dataInputStream.available() > 0) {
             dataInputStream.mark(1);
             if (dataInputStream.read() == -1) {
@@ -97,55 +84,48 @@ public class ZipDecompressor implements Closeable {
 
             String path = dataInputStream.readUTF();
             long length = dataInputStream.readLong();
-
-            if (path.startsWith(ZipCompressor.HTTP_PREFIX)) {
-                path = path.replaceFirst("/", File.separator);
-            }
+            byte[] content = length != -1 ? readEntryContent(length) : null;
+            result.add(path);
 
             if (write) {
-                extractNextEntryContent(Paths.get(path), length);
-                result.add(path);
-            } else {
-                skipNextEntryContent(length);
-                if (!isHidden(path)) {
-                    result.add(path);
-                }
+                writeEntryContent(Paths.get(PathUtils.convertArchivePathToOSPath(path)), content);
             }
         }
 
         return result;
     }
 
-    private boolean isHidden(@NotNull String path) {
-        return path.contains(File.separator + ".");
+    /**
+     * Reads the entry content from the archive file.
+     *
+     * @param length the number of bytes to be read
+     * @return an array of bytes read from the archive file
+     * @throws IOException if an I/O error occurred during the reading the archive file
+     */
+    @NotNull
+    protected byte[] readEntryContent(long length) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        IOUtils.copy(dataInputStream, byteArrayOutputStream, length);
+        return byteArrayOutputStream.toByteArray();
     }
 
-    private void extractNextEntryContent(@NotNull Path path, long length) throws IOException {
-        if (length != -1) {
+    private void writeEntryContent(@NotNull Path path, @Nullable byte[] content) {
+        if (content != null) {
             Path parentPath = path.getParent();
             if (parentPath != null && !Files.isWritable(parentPath)) {
-                System.err.printf("Directory \'%s\' cannot be written to\n", parentPath.toString());
-                skipNextEntryContent(length);
+                addException(String.format("Directory \'%s\' cannot be written to\n", parentPath.toString()));
             } else {
-                writeEntryContent(path, length);
+                try {
+                    IOUtils.writeContent(Files.newOutputStream(path), content);
+                } catch (IOException e) {
+                    addException(e);
+                }
             }
         } else {
             File dir = path.toFile();
             if (!dir.exists() && !dir.mkdirs()) {
-                System.err.printf("Directory %s cannot be created\n", path.toString());
+                addException(String.format("Directory \'%s\' cannot be created\n", path.toString()));
             }
         }
-    }
-
-    private void writeEntryContent(@NotNull Path path, long length) throws IOException {
-        try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(Files.newOutputStream(path))) {
-            for (long i = 0; i < length; i++) {
-                bufferedOutputStream.write(dataInputStream.read());
-            }
-        }
-    }
-
-    private void skipNextEntryContent(long length) throws IOException {
-        dataInputStream.skipBytes((int) length);
     }
 }
