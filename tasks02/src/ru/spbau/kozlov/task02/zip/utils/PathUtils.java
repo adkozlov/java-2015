@@ -12,7 +12,8 @@ import java.io.File;
  */
 public final class PathUtils {
 
-    public static final String ARCHIVE_FILE_SEPARATOR = "/";
+    public static final char ARCHIVE_FILE_SEPARATOR = '/';
+    public static final String ARCHIVE_FILE_SEPARATOR_STRING = ARCHIVE_FILE_SEPARATOR + "";
 
     /**
      * Converts the specified filesystem path to an archive path.
@@ -21,7 +22,7 @@ public final class PathUtils {
      * @return an archive path string representation
      */
     public static String convertOSPathToArchivePath(@NotNull String osPath) {
-        return osPath.replaceAll(File.separator, ARCHIVE_FILE_SEPARATOR);
+        return osPath.replace(File.separatorChar, ARCHIVE_FILE_SEPARATOR);
     }
 
     /**
@@ -31,7 +32,7 @@ public final class PathUtils {
      * @return an archive path string representation
      */
     public static String convertUrlToArchivePath(@NotNull String url) {
-        return url.replaceAll("/", "_").replaceFirst(":__", ARCHIVE_FILE_SEPARATOR);
+        return url.replaceAll("/", "_").replaceFirst(":__", ARCHIVE_FILE_SEPARATOR_STRING);
     }
 
     /**
@@ -41,6 +42,6 @@ public final class PathUtils {
      * @return an filesystem path
      */
     public static String convertArchivePathToOSPath(@NotNull String archivePath) {
-        return archivePath.replaceAll(ARCHIVE_FILE_SEPARATOR, File.separator);
+        return archivePath.replace(ARCHIVE_FILE_SEPARATOR, File.separatorChar);
     }
 }

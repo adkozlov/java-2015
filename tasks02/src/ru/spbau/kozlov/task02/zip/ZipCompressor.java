@@ -75,9 +75,11 @@ public class ZipCompressor extends ExceptionsContainer {
     @Override
     public void close() throws IOException {
         try (DataOutputStream ignored = dataOutputStream) {
-            writeDirEntry(ZipURLUtils.getUrlDirectoryName());
-            for (URL url : urls) {
-                putNextEntry(url);
+            if (!urls.isEmpty()) {
+                writeDirEntry(ZipURLUtils.getUrlDirectoryName());
+                for (URL url : urls) {
+                    putNextEntry(url);
+                }
             }
 
             if (!ioErrorOccurred) {

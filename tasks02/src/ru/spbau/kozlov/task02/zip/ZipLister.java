@@ -32,23 +32,34 @@ public class ZipLister extends AbstractZipEntryVisitor {
      * @return a tree string representation
      * @throws IOException if an I/O error occurs during reading the archive file
      */
+    @NotNull
     public String listAllEntries() throws IOException {
         String[] next = new String[0];
+        String[] nextPrefixes = new String[0];
+
         StringBuilder stringBuilder = new StringBuilder();
         for (FilterReversedIterator iterator = new FilterReversedIterator(visitAllEntries()); iterator.hasNext(); ) {
-            String[] current = iterator.next().split(PathUtils.ARCHIVE_FILE_SEPARATOR);
+            String[] current = iterator.next().split(PathUtils.ARCHIVE_FILE_SEPARATOR_STRING);
+            String[] prefixes = new String[current.length];
             boolean isUrl = current[0].equals(ZipURLUtils.getUrlDirectoryName()) && current.length != 1;
 
             stringBuilder.insert(0, System.lineSeparator());
             stringBuilder.insert(0, current[current.length - 1]);
             stringBuilder.insert(0, "|_");
+            prefixes[current.length - 1] = "| ";
 
             for (int j = current.length - 2; j >= 0; j--) {
                 stringBuilder.insert(0, String.format("%" + current[j].length() + "s", " "));
-                stringBuilder.insert(0, !isUrl && j < next.length ? "| " : "  ");
+                String prefix = !isUrl && j < next.length ? "| " : "  ";
+                if (j < nextPrefixes.length && nextPrefixes[j] != null && nextPrefixes[j].equals("  ")) {
+                    prefix = "  ";
+                }
+                stringBuilder.insert(0, prefix);
+                prefixes[j] = prefix;
             }
 
             next = current;
+            nextPrefixes = prefixes;
         }
 
         return stringBuilder.toString();
