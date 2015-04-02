@@ -1,7 +1,5 @@
-package ru.spbau.kozlov.task03.tests;
+package ru.spbau.kozlov.task03.funclib.tests;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import ru.spbau.kozlov.task03.funclib.core.Function;
 import ru.spbau.kozlov.task03.funclib.core.Function2;
@@ -27,15 +25,13 @@ public class TestCompositions {
     public void testFunctionThen() {
         List<Integer> testNumbers = Arrays.asList(4, 8, 15, 16, 23, 42);
         Function<Integer, Double> composition = new Function<Integer, Double>() {
-            @Nullable
             @Override
-            public Double apply(@NotNull Integer argument) {
+            public Double apply(Integer argument) {
                 return Math.sqrt(argument);
             }
         }.then(new Function<Double, Double>() {
-            @Nullable
             @Override
-            public Double apply(@NotNull Double argument) {
+            public Double apply(Double argument) {
                 return argument * argument;
             }
         });
@@ -54,15 +50,13 @@ public class TestCompositions {
     public void testFunction2Then() {
         List<Integer> testNumbers = Arrays.asList(4, 8, 15, 16, 23, 42);
         Function2<Integer, Integer, Integer> sumSqr = new Function2<Integer, Integer, Integer>() {
-            @NotNull
             @Override
-            public Integer apply(@NotNull Integer firstArgument, @NotNull Integer secondArgument) {
+            public Integer apply(Integer firstArgument, Integer secondArgument) {
                 return firstArgument + secondArgument;
             }
         }.then(new Function<Integer, Integer>() {
-            @NotNull
             @Override
-            public Integer apply(@NotNull Integer argument) {
+            public Integer apply(Integer argument) {
                 return argument * argument;
             }
         });
@@ -82,9 +76,8 @@ public class TestCompositions {
     public void testCurrying() {
         List<Integer> testNumbers = Arrays.asList(4, 8, 15, 16, 23, 42);
         Function2<Integer, Integer, Integer> sum = new Function2<Integer, Integer, Integer>() {
-            @NotNull
             @Override
-            public Integer apply(@NotNull Integer firstArgument, @NotNull Integer secondArgument) {
+            public Integer apply(Integer firstArgument, Integer secondArgument) {
                 return firstArgument + secondArgument;
             }
         };

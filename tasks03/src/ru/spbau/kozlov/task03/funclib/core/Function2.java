@@ -1,8 +1,5 @@
 package ru.spbau.kozlov.task03.funclib.core;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 /**
  * The {@link ru.spbau.kozlov.task03.funclib.core.Function2} class represents an abstract function of two arguments.
  * The function has a type A -> B -> C.
@@ -18,8 +15,7 @@ public abstract class Function2<A, B, C> {
      * @param secondArgument a function argument of type B
      * @return the value of the function of a type C
      */
-    @Nullable
-    public abstract C apply(@NotNull A firstArgument, @NotNull B secondArgument);
+    public abstract C apply(A firstArgument, B secondArgument);
 
     /**
      * Returns the current function with the first parameter bind.
@@ -27,12 +23,10 @@ public abstract class Function2<A, B, C> {
      * @param argument an argument to be bind
      * @return the new function of a type B -> C
      */
-    @NotNull
-    public Function<B, C> bind1(@NotNull final A argument) {
+    public Function<B, C> bind1(final A argument) {
         return new Function<B, C>() {
-            @Nullable
             @Override
-            public C apply(@NotNull B secondArgument) {
+            public C apply(B secondArgument) {
                 return Function2.this.apply(argument, secondArgument);
             }
         };
@@ -44,12 +38,10 @@ public abstract class Function2<A, B, C> {
      * @param argument an argument to be bind
      * @return the new function of a type A -> C
      */
-    @NotNull
-    public Function<A, C> bind2(@NotNull final B argument) {
+    public Function<A, C> bind2(final B argument) {
         return new Function<A, C>() {
-            @Nullable
             @Override
-            public C apply(@NotNull A firstArgument) {
+            public C apply(A firstArgument) {
                 return Function2.this.apply(firstArgument, argument);
             }
         };
@@ -63,12 +55,10 @@ public abstract class Function2<A, B, C> {
      * @param <D>      the return type of the second function
      * @return the composition of two functions of type
      */
-    @NotNull
-    public <D> Function2<A, B, D> then(@NotNull final Function<? super C, D> function) {
+    public <D> Function2<A, B, D> then(final Function<? super C, D> function) {
         return new Function2<A, B, D>() {
-            @Nullable
             @Override
-            public D apply(@NotNull A firstArgument, @NotNull B secondArgument) {
+            public D apply(A firstArgument, B secondArgument) {
                 return function.apply(Function2.this.apply(firstArgument, secondArgument));
             }
         };

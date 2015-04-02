@@ -1,6 +1,5 @@
-package ru.spbau.kozlov.task03.tests;
+package ru.spbau.kozlov.task03.funclib.tests;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import ru.spbau.kozlov.task03.funclib.core.Predicate;
 
@@ -48,35 +47,30 @@ public class TestPredicates {
     public void testLogicalPredicates() {
         List<Integer> testNumbers = Arrays.asList(4, 8, -15, 16, -23, 42);
         Predicate<Integer> absIsGreaterThan15 = new Predicate<Integer>() {
-            @NotNull
             @Override
-            public Boolean apply(@NotNull Integer argument) {
+            public Boolean apply(Integer argument) {
                 return argument > 15;
             }
         }.or(new Predicate<Integer>() {
-            @NotNull
             @Override
-            public Boolean apply(@NotNull Integer argument) {
+            public Boolean apply(Integer argument) {
                 return argument < -15;
             }
         });
         Predicate<Integer> absIsLessThan16 = new Predicate<Integer>() {
-            @NotNull
             @Override
-            public Boolean apply(@NotNull Integer argument) {
+            public Boolean apply(Integer argument) {
                 return argument < 16;
             }
         }.and(new Predicate<Integer>() {
-            @NotNull
             @Override
-            public Boolean apply(@NotNull Integer argument) {
+            public Boolean apply(Integer argument) {
                 return argument > -16;
             }
         });
         Predicate<Integer> isPositive = new Predicate<Integer>() {
-            @NotNull
             @Override
-            public Boolean apply(@NotNull Integer argument) {
+            public Boolean apply(Integer argument) {
                 return argument <= 0;
             }
         }.not();

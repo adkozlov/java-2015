@@ -9,14 +9,14 @@ import ru.spbau.kozlov.task03.funclib.core.Function;
  */
 public class Comparator<A, B extends Comparable<? super B>> implements java.util.Comparator<A> {
 
-    private final Function<? super A, B> comparisonFunction;
+    private final Function<? super A, ? extends B> comparisonFunction;
 
     /**
      * Constructs a new comparator base on the specified function.
      *
      * @param comparisonFunction a comparison function to be used
      */
-    public Comparator(Function<? super A, B> comparisonFunction) {
+    public Comparator(Function<? super A, ? extends B> comparisonFunction) {
         this.comparisonFunction = comparisonFunction;
     }
 

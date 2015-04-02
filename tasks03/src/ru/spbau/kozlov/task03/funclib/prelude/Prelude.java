@@ -1,7 +1,5 @@
 package ru.spbau.kozlov.task03.funclib.prelude;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import ru.spbau.kozlov.task03.funclib.core.Function;
 import ru.spbau.kozlov.task03.funclib.core.Function2;
 import ru.spbau.kozlov.task03.funclib.core.Predicate;
@@ -29,12 +27,10 @@ public final class Prelude {
      * @param <B>      the return type of the specified function
      * @return an instance of the {@code foldr} function
      */
-    @NotNull
-    public static <A, B> Function2<? super B, ListIterator<? extends A>, B> foldr(@NotNull final Function2<? super A, ? super B, B> function) {
+    public static <A, B> Function2<? super B, ListIterator<? extends A>, B> foldr(final Function2<? super A, ? super B, B> function) {
         return new Function2<B, ListIterator<? extends A>, B>() {
-            @Nullable
             @Override
-            public B apply(@NotNull B value, @NotNull ListIterator<? extends A> iterator) {
+            public B apply(B value, ListIterator<? extends A> iterator) {
                 return foldr(function, value, iterator);
             }
         };
@@ -50,13 +46,11 @@ public final class Prelude {
      * @param <B>      the return type of the specified function
      * @return a value of a type B
      */
-    @Nullable
-    public static <A, B> B foldr(@NotNull Function2<? super A, ? super B, B> function, @NotNull B value, @NotNull List<? extends A> list) {
+    public static <A, B> B foldr(Function2<? super A, ? super B, B> function, B value, List<? extends A> list) {
         return foldr(function, value, list.listIterator(list.size()));
     }
 
-    @Nullable
-    private static <A, B> B foldr(@NotNull Function2<? super A, ? super B, B> function, @NotNull B value, @NotNull ListIterator<? extends A> iterator) {
+    private static <A, B> B foldr(Function2<? super A, ? super B, B> function, B value, ListIterator<? extends A> iterator) {
         B result = value;
         while (iterator.hasPrevious()) {
             result = function.apply(iterator.previous(), result);
@@ -72,12 +66,10 @@ public final class Prelude {
      * @param <A>   the type of the elements in the sequence
      * @return an instance of the {@code take} function
      */
-    @NotNull
-    public static <A> Function<Iterator<? extends A>, Iterator<A>> take(final int count, @NotNull Class<A> clazz) {
+    public static <A> Function<Iterator<? extends A>, Iterator<A>> take(final int count, Class<A> clazz) {
         return new Function<Iterator<? extends A>, Iterator<A>>() {
-            @NotNull
             @Override
-            public Iterator<A> apply(@NotNull Iterator<? extends A> iterator) {
+            public Iterator<A> apply(Iterator<? extends A> iterator) {
                 return take(count, iterator);
             }
         };
@@ -91,13 +83,11 @@ public final class Prelude {
      * @param <A>      the type of the elements in the sequence
      * @return an iterator to a sequence of taken elements
      */
-    @NotNull
-    public static <A> Iterator<A> take(final int count, @NotNull final Iterable<? extends A> iterable) {
+    public static <A> Iterator<A> take(final int count, final Iterable<? extends A> iterable) {
         return take(count, iterable.iterator());
     }
 
-    @NotNull
-    private static <A> Iterator<A> take(final int count, @NotNull final Iterator<? extends A> iterator) {
+    private static <A> Iterator<A> take(final int count, final Iterator<? extends A> iterator) {
         return new Iterator<A>() {
             private int index = 0;
 
@@ -125,12 +115,10 @@ public final class Prelude {
      * @param <B>      the return type of the specified function
      * @return an instance of the {@code map} function
      */
-    @NotNull
-    public static <A, B> Function<Iterator<? extends A>, Iterator<B>> map(@NotNull final Function<? super A, ? extends B> function) {
+    public static <A, B> Function<Iterator<? extends A>, Iterator<B>> map(final Function<? super A, ? extends B> function) {
         return new Function<Iterator<? extends A>, Iterator<B>>() {
-            @NotNull
             @Override
-            public Iterator<B> apply(@NotNull Iterator<? extends A> iterator) {
+            public Iterator<B> apply(Iterator<? extends A> iterator) {
                 return map(function, iterator);
             }
         };
@@ -145,20 +133,17 @@ public final class Prelude {
      * @param <B>      the type of elements to be calculated and the return type of the specified function
      * @return an iterator to a sequence of calculated elements
      */
-    @NotNull
-    public static <A, B> Iterator<B> map(@NotNull final Function<? super A, ? extends B> function, @NotNull final Iterable<A> iterable) {
+    public static <A, B> Iterator<B> map(final Function<? super A, ? extends B> function, final Iterable<A> iterable) {
         return map(function, iterable.iterator());
     }
 
-    @NotNull
-    private static <A, B> Iterator<B> map(@NotNull final Function<? super A, ? extends B> function, @NotNull final Iterator<A> iterator) {
+    private static <A, B> Iterator<B> map(final Function<? super A, ? extends B> function, final Iterator<A> iterator) {
         return new Iterator<B>() {
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
             }
 
-            @Nullable
             @Override
             public B next() {
                 if (!hasNext()) {
@@ -176,12 +161,10 @@ public final class Prelude {
      * @param <A>       the parameter type of the specified predicate
      * @return an instance of the {@code filter} function
      */
-    @NotNull
-    public static <A> Function<Iterator<? extends A>, Iterator<A>> filter(@NotNull final Predicate<? super A> predicate) {
-        return new Function<Iterator<? extends A>, Iterator<A>>() {
-            @NotNull
+    public static <A> Function<Iterator<A>, Iterator<A>> filter(final Predicate<? super A> predicate) {
+        return new Function<Iterator<A>, Iterator<A>>() {
             @Override
-            public Iterator<A> apply(@NotNull Iterator<? extends A> iterator) {
+            public Iterator<A> apply(Iterator<A> iterator) {
                 return filter(predicate, iterator);
             }
         };
@@ -195,15 +178,12 @@ public final class Prelude {
      * @param <A>       the type of elements in the specified sequence
      * @return an iterator to a sequence of elements that match the specified predicate
      */
-    @NotNull
-    public static <A> Iterator<A> filter(@NotNull final Predicate<? super A> predicate, @NotNull final Iterable<? extends A> iterable) {
+    public static <A> Iterator<A> filter(final Predicate<? super A> predicate, final Iterable<A> iterable) {
         return filter(predicate, iterable.iterator());
     }
 
-    @NotNull
-    private static <A> Iterator<A> filter(@NotNull final Predicate<? super A> predicate, @NotNull final Iterator<? extends A> iterator) {
+    private static <A> Iterator<A> filter(final Predicate<? super A> predicate, final Iterator<A> iterator) {
         return new Iterator<A>() {
-            @Nullable
             private A cached;
 
             @Override
@@ -221,7 +201,6 @@ public final class Prelude {
                 return false;
             }
 
-            @Nullable
             @Override
             public A next() {
                 if (cached != null) {

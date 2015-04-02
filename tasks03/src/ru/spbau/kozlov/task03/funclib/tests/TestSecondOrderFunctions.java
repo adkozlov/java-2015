@@ -1,7 +1,5 @@
-package ru.spbau.kozlov.task03.tests;
+package ru.spbau.kozlov.task03.funclib.tests;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -31,9 +29,8 @@ public class TestSecondOrderFunctions {
     public void testFoldr() {
         List<Integer> testNumbers = Arrays.asList(8, 12, 24, 4);
         Function2<Integer, Double, Double> divide = new Function2<Integer, Double, Double>() {
-            @Nullable
             @Override
-            public Double apply(@NotNull Integer firstArgument, @NotNull Double secondArgument) {
+            public Double apply(Integer firstArgument, Double secondArgument) {
                 return firstArgument / secondArgument;
             }
         };
@@ -50,9 +47,8 @@ public class TestSecondOrderFunctions {
     public void testFoldrEmpty() {
         List<Integer> testNumbers = Arrays.asList();
         Function2<Integer, Integer, Integer> sum = new Function2<Integer, Integer, Integer>() {
-            @Nullable
             @Override
-            public Integer apply(@NotNull Integer firstArgument, @NotNull Integer secondArgument) {
+            public Integer apply(Integer firstArgument, Integer secondArgument) {
                 return firstArgument + secondArgument;
             }
         };
@@ -98,9 +94,8 @@ public class TestSecondOrderFunctions {
     public void testMapSqrt() {
         List<Integer> testNumbers = Arrays.asList(4, 8, 15, 16, 23, 42);
         Function<Integer, Double> sqrt = new Function<Integer, Double>() {
-            @Nullable
             @Override
-            public Double apply(@NotNull Integer argument) {
+            public Double apply(Integer argument) {
                 return Math.sqrt(argument);
             }
         };
@@ -125,9 +120,8 @@ public class TestSecondOrderFunctions {
     public void testMapEmpty() {
         List<Integer> testNumbers = Arrays.asList();
         Function<Integer, Integer> id = new Function<Integer, Integer>() {
-            @Nullable
             @Override
-            public Integer apply(@NotNull Integer argument) {
+            public Integer apply(Integer argument) {
                 return argument;
             }
         };
@@ -145,9 +139,8 @@ public class TestSecondOrderFunctions {
     public void testFilterPositive() {
         List<Integer> testNumbers = Arrays.asList(4, -8, 15, 16, -23, 42);
         Predicate<Integer> isPositive = new Predicate<Integer>() {
-            @NotNull
             @Override
-            public Boolean apply(@NotNull Integer argument) {
+            public Boolean apply(Integer argument) {
                 return argument > 0;
             }
         };
@@ -177,9 +170,8 @@ public class TestSecondOrderFunctions {
     public void testFilterNotNegativeNext() {
         List<Integer> testNumbers = Arrays.asList(-4, -8, 15, -16, -23, 42);
         Predicate<Integer> isNotNegative = new Predicate<Integer>() {
-            @NotNull
             @Override
-            public Boolean apply(@NotNull Integer argument) {
+            public Boolean apply(Integer argument) {
                 return argument >= 0;
             }
         };

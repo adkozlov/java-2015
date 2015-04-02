@@ -3,7 +3,7 @@ package ru.spbau.kozlov.task03;
 import org.junit.runner.JUnitCore;
 
 /**
- * The {@link Main} class runs all the tests from the {@link ru.spbau.kozlov.task03.tests.FuncLibSuite} class.
+ * The {@link Main} class runs all the tests from the {@link ru.spbau.kozlov.task03.funclib.tests.FuncLibSuite} class.
  *
  * @author adkozlov
  */

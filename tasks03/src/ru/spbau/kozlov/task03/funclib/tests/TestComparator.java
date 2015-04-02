@@ -1,6 +1,5 @@
-package ru.spbau.kozlov.task03.tests;
+package ru.spbau.kozlov.task03.funclib.tests;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import ru.spbau.kozlov.task03.funclib.core.Function;
 import ru.spbau.kozlov.task03.funclib.prelude.Comparator;
@@ -20,9 +19,8 @@ public class TestComparator {
     @Test
     public void testComparator() {
         Comparator<Integer, Integer> absComparator = new Comparator<>(new Function<Integer, Integer>() {
-            @NotNull
             @Override
-            public Integer apply(@NotNull Integer argument) {
+            public Integer apply(Integer argument) {
                 return Math.abs(argument);
             }
         });

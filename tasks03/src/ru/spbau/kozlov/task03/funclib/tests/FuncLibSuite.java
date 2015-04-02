@@ -1,4 +1,4 @@
-package ru.spbau.kozlov.task03.tests;
+package ru.spbau.kozlov.task03.funclib.tests;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
