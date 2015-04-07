@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="cw01:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/cw01</output-path>
+    <root id="archive" name="cw01.jar">
+      <element id="module-output" name="cw01" />
+      <element id="directory" name="src">
+        <element id="dir-copy" path="$PROJECT_DIR$/cw01/src" />
+      </element>
+    </root>
+  </artifact>
+</component>
