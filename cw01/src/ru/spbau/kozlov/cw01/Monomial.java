@@ -33,12 +33,11 @@ public final class Monomial<R extends Ring<R>> implements Multipliable<Monomial<
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+        if (o == null) return false;
         if (!(o instanceof Monomial)) return false;
 
-        Monomial monomial = (Monomial) o;
-
-        if (power != monomial.power) return false;
-        return coefficient.equals(monomial.coefficient);
+        Monomial<?> monomial = (Monomial<?>) o;
+        return power == monomial.power && coefficient.equals(monomial.coefficient);
 
     }
 

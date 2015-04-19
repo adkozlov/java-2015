@@ -5,11 +5,11 @@ import java.util.*;
 /**
  * @author adkozlov
  */
-public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<? extends R>> implements Ring<Polynomial<? extends R>> {
+public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<R>> implements Ring<Polynomial<? extends R>> {
 
-    public static final Polynomial ZERO = new Polynomial();
+    public static final Polynomial<?> ZERO = new Polynomial();
 
-    private SortedMap<Integer, List<Monomial<? extends R>>> monomialsMap = new TreeMap<>();
+    private SortedMap<Integer, List<Monomial<R>>> monomialsMap = new TreeMap<>();
 
     public Polynomial() {
     }
@@ -18,16 +18,16 @@ public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<?
         this(new Monomial<>(coefficient, power));
     }
 
-    public Polynomial(Monomial<? extends R> monomial) {
-        List<Monomial<? extends R>> monomials = new ArrayList<>();
+    public Polynomial(Monomial<R> monomial) {
+        List<Monomial<R>> monomials = new ArrayList<>();
         monomials.add(monomial);
 
         monomialsMap.put(monomial.getPower(), monomials);
     }
 
     public Polynomial(Polynomial<R> polynomial) {
-        for (Map.Entry<Integer, List<Monomial<? extends R>>> entry : polynomial.monomialsMap.entrySet()) {
-            List<Monomial<? extends R>> newMonomials = new ArrayList<>();
+        for (Map.Entry<Integer, List<Monomial<R>>> entry : polynomial.monomialsMap.entrySet()) {
+            List<Monomial<R>> newMonomials = new ArrayList<>();
             newMonomials.addAll(entry.getValue());
 
             monomialsMap.put(entry.getKey(), newMonomials);
@@ -37,26 +37,27 @@ public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<?
     @Override
     public Polynomial<R> sum(Polynomial<? extends R> argument) {
         Polynomial<R> result = new Polynomial<>(this);
-        result.addAll(argument);
+        for (Monomial<? extends R> monomial : argument) {
+            result.add(new Monomial<>(monomial.getCoefficient(), monomial.getPower()));
+        }
         return result;
     }
 
     @Override
     public Polynomial<R> multiply(Polynomial<? extends R> argument) {
         Polynomial<R> result = new Polynomial<>();
-        for (Monomial<? extends R> thisMonomial : this) {
+        for (Monomial<R> thisMonomial : this) {
             for (Monomial<? extends R> thatMonomial : argument) {
-                result.add(new Monomial<>(thisMonomial.getCoefficient().multiply(thatMonomial.getCoefficient()),
-                        thisMonomial.getPower() + thatMonomial.getPower()));
+                result.add(thisMonomial.multiply(thatMonomial));
             }
         }
         return result;
     }
 
     @Override
-    public Iterator<Monomial<? extends R>> iterator() {
-        return new Iterator<Monomial<? extends R>>() {
-            private final Iterator<Map.Entry<Integer, List<Monomial<? extends R>>>> iterator = monomialsMap.entrySet().iterator();
+    public Iterator<Monomial<R>> iterator() {
+        return new Iterator<Monomial<R>>() {
+            private final Iterator<Map.Entry<Integer, List<Monomial<R>>>> iterator = monomialsMap.entrySet().iterator();
 
             @Override
             public boolean hasNext() {
@@ -64,13 +65,13 @@ public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<?
             }
 
             @Override
-            public Monomial<? extends R> next() {
+            public Monomial<R> next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException("Iterator is empty");
                 }
 
-                List<Monomial<? extends R>> monomials = iterator.next().getValue();
-                Iterator<Monomial<? extends R>> monomialsIterator = monomials.iterator();
+                List<Monomial<R>> monomials = iterator.next().getValue();
+                Iterator<Monomial<R>> monomialsIterator = monomials.iterator();
 
                 Monomial<? extends R> monomial = monomialsIterator.next();
                 R coefficient = monomial.getCoefficient();
@@ -91,7 +92,7 @@ public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<?
     }
 
     @Override
-    public boolean add(Monomial<? extends R> monomial) {
+    public boolean add(Monomial<R> monomial) {
         monomialsMap.putIfAbsent(monomial.getPower(), new ArrayList<>());
         return monomialsMap.get(monomial.getPower()).add(monomial);
     }
@@ -137,11 +138,11 @@ public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<?
         }
 
         StringBuilder builder = new StringBuilder();
-        List<Monomial<? extends R>> monomials = new ArrayList<>();
+        List<Monomial<R>> monomials = new ArrayList<>();
         monomials.addAll(this);
 
-        for (ListIterator<Monomial<? extends R>> iterator = monomials.listIterator(monomials.size()); iterator.hasPrevious(); ) {
-            Monomial<? extends R> monomial = iterator.previous();
+        for (ListIterator<Monomial<R>> iterator = monomials.listIterator(monomials.size()); iterator.hasPrevious(); ) {
+            Monomial<R> monomial = iterator.previous();
 
             builder.append("(");
             builder.append(monomial.getCoefficient());
@@ -161,13 +162,14 @@ public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<?
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+        if (o == null) return false;
         if (!(o instanceof Polynomial)) return false;
 
-        Polynomial that = (Polynomial) o;
+        Polynomial<?> that = (Polynomial<?>) o;
         if (that == ZERO) return true;
 
-        Iterator<Monomial<? extends R>> thisIterator = iterator();
-        Iterator thatIterator = that.iterator();
+        Iterator<Monomial<R>> thisIterator = iterator();
+        Iterator<?> thatIterator = that.iterator();
         while (thisIterator.hasNext() && thatIterator.hasNext()) {
             if (!thisIterator.next().equals(thatIterator.next())) {
                 return false;
