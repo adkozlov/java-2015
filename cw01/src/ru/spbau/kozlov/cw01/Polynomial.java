@@ -147,7 +147,7 @@ public class Polynomial<R extends Ring<R>> extends AbstractCollection<Monomial<R
             builder.append("(");
             builder.append(monomial.getCoefficient());
             builder.append(")");
-            if (iterator.hasPrevious()) {
+            if (monomial.getPower() != 0) {
                 builder.append(" x^");
                 builder.append(monomial.getPower());
             }
