@@ -6,6 +6,7 @@
       <element id="directory" name="src">
         <element id="dir-copy" path="$PROJECT_DIR$/cw01/src" />
       </element>
+      <element id="library" level="project" name="edu.washington.cs.types.checker:checker-framework:1.7.5" />
     </root>
   </artifact>
 </component>

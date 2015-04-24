@@ -13,8 +13,8 @@
     <module name="tasks03" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
     <option name="ALTERNATIVE_JRE_PATH" value="" />
-    <option name="PACKAGE_NAME" value="ru.spbau.kozlov.task03.tests" />
-    <option name="MAIN_CLASS_NAME" value="ru.spbau.kozlov.task03.tests.FuncLibSuite" />
+    <option name="PACKAGE_NAME" value="ru.spbau.kozlov.task03.funclib.tests" />
+    <option name="MAIN_CLASS_NAME" value="ru.spbau.kozlov.task03.funclib.tests.FuncLibSuite" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <option name="VM_PARAMETERS" value="-ea" />

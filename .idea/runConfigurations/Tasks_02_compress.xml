@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Taks02 compress" type="Application" factoryName="Application">
+  <configuration default="false" name="Tasks 02 compress" type="Application" factoryName="Application">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
       <pattern>
         <option name="PATTERN" value="ru.spbau.kozlov.task02.*" />
