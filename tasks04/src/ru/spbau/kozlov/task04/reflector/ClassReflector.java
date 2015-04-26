@@ -17,7 +17,8 @@ public final class ClassReflector {
     private ClassReflector() {
     }
 
-    public static String createClassHeader(@NonNull Class<?> clazz, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    public static String createClassHeader(@NonNull Class<?> clazz, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
 
         boolean isInterface = clazz.isInterface();
@@ -35,7 +36,7 @@ public final class ClassReflector {
         return builder.toString();
     }
 
-    private static void appendGenericSuperclass(Type superClassType, @NonNull Set<Class<?>> declaredClasses, @NonNull StringBuilder result) {
+    private static void appendGenericSuperclass(Type superClassType, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder result) {
         if (superClassType != null && superClassType != Object.class) {
             result.append(JavaFileConfig.SPACE);
             result.append(JavaGrammarTerminals.EXTENDS_STRING);
@@ -44,7 +45,7 @@ public final class ClassReflector {
         }
     }
 
-    private static void appendGenericInterfaces(boolean isInterface, @NonNull Type[] interfacesTypes, @NonNull Set<Class<?>> declaredClasses, @NonNull StringBuilder result) {
+    private static void appendGenericInterfaces(boolean isInterface, @NonNull Type[] interfacesTypes, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder result) {
         if (interfacesTypes.length != 0) {
             result.append(JavaFileConfig.SPACE);
             result.append(isInterface ? JavaGrammarTerminals.EXTENDS_STRING : JavaGrammarTerminals.IMPLEMENTS_STRING);

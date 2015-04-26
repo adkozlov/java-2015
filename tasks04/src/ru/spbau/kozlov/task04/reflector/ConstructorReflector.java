@@ -19,7 +19,8 @@ public final class ConstructorReflector {
     private ConstructorReflector() {
     }
 
-    public static String createConstructorString(@NonNull Constructor<?> constructor, @NonNull String indent, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    public static String createConstructorString(@NonNull Constructor<?> constructor, @NonNull String indent, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
 
         builder.append(indent);
@@ -36,6 +37,7 @@ public final class ConstructorReflector {
         appendSuperConstructorInvocation(constructor, genericParameterTypes.length, indent, builder);
         builder.append(indent);
         builder.append(JavaGrammarTerminals.RIGHT_BRACE);
+        builder.append(JavaFileConfig.NEW_LINE);
         builder.append(JavaFileConfig.NEW_LINE);
 
         return builder.toString();
@@ -81,6 +83,7 @@ public final class ConstructorReflector {
         return clazz.isMemberClass() && !Modifier.isStatic(clazz.getModifiers());
     }
 
+    @NonNull
     private static Type[] getGenericParameterTypes(@NonNull Constructor<?> constructor) {
         Type[] result = constructor.getGenericParameterTypes();
         return !isInnerClassConstructor(constructor) ? result : Arrays.copyOfRange(result, 1, result.length);

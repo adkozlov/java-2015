@@ -19,7 +19,8 @@ public final class MethodReflector {
     private MethodReflector() {
     }
 
-    public static String createMethodString(@NonNull Method method, @NonNull String indent, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    public static String createMethodString(@NonNull Method method, @NonNull String indent, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
 
         builder.append(indent);
@@ -38,6 +39,7 @@ public final class MethodReflector {
         appendThrowsList(method.getGenericExceptionTypes(), declaredClasses, builder);
         appendMethodBody(method, indent, builder);
         builder.append(JavaFileConfig.NEW_LINE);
+        builder.append(JavaFileConfig.NEW_LINE);
 
         return builder.toString();
     }
@@ -52,7 +54,7 @@ public final class MethodReflector {
         }
     }
 
-    static void appendArgumentsList(@NonNull Type[] argumentsTypes, @NonNull Set<Class<?>> declaredClasses, @NonNull StringBuilder builder) {
+    static void appendArgumentsList(@NonNull Type[] argumentsTypes, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {
         int[] counter = new int[1];
         builder.append(JavaGrammarTerminals.LEFT_PAREN);
         StringBuilderUtils.appendTypesString(argumentsTypes,
@@ -66,7 +68,7 @@ public final class MethodReflector {
         builder.append(JavaGrammarTerminals.RIGHT_PAREN);
     }
 
-    static void appendThrowsList(@NonNull Type[] exceptionsTypes, @NonNull Set<Class<?>> declaredClasses, @NonNull StringBuilder builder) {
+    static void appendThrowsList(@NonNull Type[] exceptionsTypes, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {
         if (exceptionsTypes.length != 0) {
             builder.append(JavaFileConfig.SPACE);
             builder.append(JavaGrammarTerminals.THROWS_STRING);

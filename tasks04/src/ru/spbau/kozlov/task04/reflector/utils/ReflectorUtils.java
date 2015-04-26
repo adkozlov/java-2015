@@ -19,7 +19,8 @@ public final class ReflectorUtils {
     private ReflectorUtils() {
     }
 
-    public static String getTypeName(@NonNull Type type, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    public static String getTypeName(@NonNull Type type, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         if (type instanceof WildcardType) {
             StringBuilder builder = new StringBuilder();
 
@@ -46,11 +47,13 @@ public final class ReflectorUtils {
         return getSimpleName(type, declaredClasses);
     }
 
-    private static String getSimpleName(@NonNull Type type, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    private static String getSimpleName(@NonNull Type type, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         String result = type.getTypeName().replace(JavaGrammarTerminals.INNER_CLASS_DELIMITER, JavaGrammarTerminals.CLASS_DELIMITER);
         return declaredClasses.contains(type) ? result.substring(result.lastIndexOf(JavaGrammarTerminals.CLASS_DELIMITER) + 1) : result;
     }
 
+    @NonNull
     public static String createDefaultValueString(@NonNull Class<?> returnValueClass) {
         if (!returnValueClass.isPrimitive()) {
             return JavaGrammarTerminals.NULL_STRING;
@@ -61,7 +64,8 @@ public final class ReflectorUtils {
         }
     }
 
-    public static String createGenericTypesEnumerationString(@NonNull Type[] types, @NonNull String delimiter, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    public static String createGenericTypesEnumerationString(@NonNull Type[] types, @NonNull String delimiter, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
         List<Type> typeList = Arrays.asList(types).stream().filter(type -> type != Object.class).collect(Collectors.toList());
         StringBuilderUtils.appendTypesString(typeList.toArray(new Type[typeList.size()]),
@@ -71,7 +75,8 @@ public final class ReflectorUtils {
         return builder.toString();
     }
 
-    public static String createTypeParametersString(@NonNull TypeVariable<?>[] typeParameters, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    public static String createTypeParametersString(@NonNull TypeVariable<?>[] typeParameters, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
         StringBuilderUtils.appendTypeParametersString(typeParameters, typeVariable -> {
             builder.append(typeVariable.getName());

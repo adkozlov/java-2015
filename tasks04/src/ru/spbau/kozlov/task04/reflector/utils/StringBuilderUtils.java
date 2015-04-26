@@ -46,7 +46,7 @@ public final class StringBuilderUtils {
         }
     }
 
-    public static void appendBoundsString(@NonNull Type[] bounds, boolean isUpperBound, @NonNull Set<Class<?>> declaredClasses, @NonNull StringBuilder builder) {
+    public static void appendBoundsString(@NonNull Type[] bounds, boolean isUpperBound, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {
         String typesString = ReflectorUtils.createGenericTypesEnumerationString(bounds, JavaGrammarTerminals.GENERIC_BOUNDS_DELIMITER, declaredClasses);
         if (!typesString.isEmpty()) {
             builder.append(JavaFileConfig.SPACE);

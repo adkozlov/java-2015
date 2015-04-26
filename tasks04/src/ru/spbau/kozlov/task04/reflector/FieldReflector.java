@@ -18,7 +18,8 @@ public final class FieldReflector {
     private FieldReflector() {
     }
 
-    public static String createFieldString(@NonNull Field field, @NonNull String indent, @NonNull Set<Class<?>> declaredClasses) {
+    @NonNull
+    public static String createFieldString(@NonNull Field field, @NonNull String indent, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
 
         int modifiers = field.getModifiers();
@@ -37,6 +38,7 @@ public final class FieldReflector {
         }
 
         builder.append(JavaGrammarTerminals.SEMICOLON);
+        builder.append(JavaFileConfig.NEW_LINE);
         builder.append(JavaFileConfig.NEW_LINE);
 
         return builder.toString();

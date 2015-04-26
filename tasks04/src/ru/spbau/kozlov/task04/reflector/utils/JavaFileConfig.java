@@ -1,5 +1,7 @@
 package ru.spbau.kozlov.task04.reflector.utils;
 
+import checkers.nullness.quals.NonNull;
+
 /**
  * @author adkozlov
  */
@@ -15,6 +17,7 @@ public final class JavaFileConfig {
     private JavaFileConfig() {
     }
 
+    @NonNull
     public static String createArgumentName(int index) {
         return String.format(JavaFileConfig.ARGUMENT_NAME_FORMAT, index);
     }
