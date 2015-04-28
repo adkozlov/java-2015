@@ -59,7 +59,7 @@ public final class CompilerUtils {
      *
      * @param oldSimpleName the old simple name of the class
      * @param newSimpleName the new simple name of the class
-     * @param source the source code
+     * @param source        the source code
      * @return a new source code
      */
     public static String updateSource(@NonNull String oldSimpleName, @NonNull String newSimpleName, @NonNull String source) {

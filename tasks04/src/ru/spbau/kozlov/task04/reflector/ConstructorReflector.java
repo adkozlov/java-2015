@@ -3,12 +3,14 @@ package ru.spbau.kozlov.task04.reflector;
 import checkers.nullness.quals.NonNull;
 import ru.spbau.kozlov.task04.reflector.utils.JavaCodeStyleConfig;
 import ru.spbau.kozlov.task04.reflector.utils.JavaGrammarTerminals;
+import ru.spbau.kozlov.task04.reflector.utils.ReflectorUtils;
 import ru.spbau.kozlov.task04.reflector.utils.StringBuilderUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -87,6 +89,33 @@ public final class ConstructorReflector {
         builder.append(JavaGrammarTerminals.RIGHT_PAREN);
         builder.append(JavaGrammarTerminals.SEMICOLON);
         builder.append(JavaCodeStyleConfig.NEW_LINE);
+    }
+
+    /**
+     * Analyzes all the constructors of the two specified classes and returns the difference.
+     *
+     * @param first the first class to be analyzed
+     * @param second the second class to be analyzed
+     * @return a set of {@link Difference} class instances
+     */
+    @NonNull
+    public static Set<Difference> diffConstructors(@NonNull Class<?> first, @NonNull Class<?> second) {
+        Set<Difference> result = new LinkedHashSet<>();
+
+        for (Constructor<?> firstClassConstructor : first.getDeclaredConstructors()) {
+            try {
+                Constructor<?> secondClassConstructor = second.getDeclaredConstructor(firstClassConstructor.getParameterTypes());
+                if (firstClassConstructor.getModifiers() != secondClassConstructor.getModifiers() ||
+                        !ReflectorUtils.checkGenericTypesAreEqual(firstClassConstructor.getGenericParameterTypes(), secondClassConstructor.getGenericParameterTypes()) ||
+                        !ReflectorUtils.checkGenericTypesAreEqual(firstClassConstructor.getGenericExceptionTypes(), secondClassConstructor.getGenericExceptionTypes())) {
+                    result.add(new Difference(firstClassConstructor.toGenericString(), secondClassConstructor.toGenericString(), "Constructors \'%s\' and \'%s\' are not equal"));
+                }
+            } catch (NoSuchMethodException e) {
+                result.add(new Difference(second.getName(), firstClassConstructor.toGenericString(), "Class \'%s\' has no constructor: \'%s\'"));
+            }
+        }
+
+        return result;
     }
 
     private static boolean isInnerClassConstructor(@NonNull Constructor<?> constructor) {

@@ -17,8 +17,8 @@ public class Main {
     private static final String[] CANONICAL_NAMES = {
             "java.lang.Object",
             "java.util.List",
+            "java.util.ArrayList",
             "java.util.TreeMap",
-            "java.util.Scanner",
             "ru.spbau.kozlov.task04.Main"
     };
 
@@ -28,8 +28,8 @@ public class Main {
      * If no class is passed then the following classes are used as tests:
      * 1) {@link Object};
      * 2) {@link java.util.List};
-     * 3) {@link java.util.TreeMap};
-     * 4) {@link java.util.Scanner};
+     * 3) {@link java.util.ArrayList};
+     * 4) {@link java.util.TreeMap};
      * 5) {@link Main}.
      *
      * @param args command-line arguments
@@ -54,7 +54,8 @@ public class Main {
             }
 
             try {
-                Compiler.compileAndLoad(clazz.getSimpleName(), source);
+                Class<?> compiledClass = Compiler.getInstance().compileAndLoad(clazz.getSimpleName(), source);
+                Reflector.diffClasses(clazz, compiledClass);
             } catch (IOException e) {
                 System.err.println("Output directory not found: " + e.getMessage());
             } catch (ClassNotFoundException e) {

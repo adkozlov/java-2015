@@ -8,6 +8,7 @@ import ru.spbau.kozlov.task04.reflector.utils.StringBuilderUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -55,5 +56,31 @@ public final class FieldReflector {
         builder.append(JavaCodeStyleConfig.NEW_LINE);
 
         return builder.toString();
+    }
+
+    /**
+     * Analyzes all the fields of the two specified classes and returns the difference.
+     *
+     * @param first the first class to be analyzed
+     * @param second the second class to be analyzed
+     * @return a set of {@link Difference} class instances
+     */
+    @NonNull
+    public static Set<Difference> diffFields(@NonNull Class<?> first, @NonNull Class<?> second) {
+        Set<Difference> result = new LinkedHashSet<>();
+
+        for (Field firstClassField : first.getDeclaredFields()) {
+            try {
+                Field secondClassField = second.getDeclaredField(firstClassField.getName());
+                if (firstClassField.getModifiers() != secondClassField.getModifiers() ||
+                        !ReflectorUtils.checkGenericTypesAreEqual(firstClassField.getGenericType(), secondClassField.getGenericType())) {
+                    result.add(new Difference(firstClassField.toGenericString(), secondClassField.toGenericString(), "Fields \'%s\' and \'%s\' are not equal"));
+                }
+            } catch (NoSuchFieldException e) {
+                result.add(new Difference(second.getName(), firstClassField.toGenericString(), "Class \'%s\' has no field: \'%s\'"));
+            }
+        }
+
+        return result;
     }
 }

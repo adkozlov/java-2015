@@ -7,6 +7,7 @@ import ru.spbau.kozlov.task04.reflector.utils.ReflectorUtils;
 import ru.spbau.kozlov.task04.reflector.utils.StringBuilderUtils;
 
 import java.lang.reflect.Type;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -48,6 +49,26 @@ public final class ClassHeaderReflector {
         appendGenericInterfaces(isInterface, clazz.getGenericInterfaces(), declaredClasses, builder);
 
         return builder.toString();
+    }
+
+    /**
+     * Analyzes the packages and all the modifiers of the two specified classes and returns the difference.
+     *
+     * @param first the first class to be analyzed
+     * @param second the second class to be analyzed
+     * @return a set of {@link Difference} class instances
+     */
+    @NonNull
+    public static Set<Difference> diffClassHeaders(@NonNull Class<?> first, @NonNull Class<?> second) {
+        Set<Difference> result = new LinkedHashSet<>();
+
+        if (first.getModifiers() != second.getModifiers() ||
+                !ReflectorUtils.checkGenericTypesAreEqual(first.getGenericSuperclass(), second.getGenericSuperclass()) ||
+                !ReflectorUtils.checkGenericTypesAreEqual(first.getGenericInterfaces(), second.getGenericInterfaces())) {
+            result.add(new Difference(first.toGenericString(), second.toGenericString(), "Class headers \'%s\' and \'%s' are not equal"));
+        }
+
+        return result;
     }
 
     private static void appendGenericSuperclass(Type superClassType, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder result) {

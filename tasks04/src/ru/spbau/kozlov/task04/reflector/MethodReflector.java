@@ -8,6 +8,8 @@ import ru.spbau.kozlov.task04.reflector.utils.StringBuilderUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -55,6 +57,42 @@ public final class MethodReflector {
         builder.append(JavaCodeStyleConfig.NEW_LINE);
 
         return builder.toString();
+    }
+
+    /**
+     * Analyzes all the methods of the two specified classes and returns the difference.
+     *
+     * @param first the first class to be analyzed
+     * @param second the second class to be analyzed
+     * @return a set of {@link Difference} class instances
+     */
+    @NonNull
+    public static Set<Difference> diffMethods(@NonNull Class<?> first, @NonNull Class<?> second) {
+        Set<Difference> result = new LinkedHashSet<>();
+
+        for (Method firstClassMethod : first.getDeclaredMethods()) {
+            String firstClassMethodName = firstClassMethod.getName();
+            if (firstClassMethodName.equals("equals") && Arrays.equals(firstClassMethod.getParameterTypes(), new Object[]{Object.class})) {
+                continue;
+            }
+            if ((firstClassMethodName.equals("hashCode") || firstClassMethodName.equals("toString")) && firstClassMethod.getParameterCount() == 0) {
+                continue;
+            }
+
+            try {
+                Method secondClassMethod = second.getDeclaredMethod(firstClassMethodName, firstClassMethod.getParameterTypes());
+                if (firstClassMethod.getModifiers() != secondClassMethod.getModifiers() ||
+                        !ReflectorUtils.checkGenericTypesAreEqual(firstClassMethod.getGenericReturnType(), secondClassMethod.getGenericReturnType()) ||
+                        !ReflectorUtils.checkGenericTypesAreEqual(firstClassMethod.getGenericParameterTypes(), secondClassMethod.getGenericParameterTypes()) ||
+                        !ReflectorUtils.checkGenericTypesAreEqual(firstClassMethod.getGenericExceptionTypes(), secondClassMethod.getGenericExceptionTypes())) {
+                    result.add(new Difference(firstClassMethod.toGenericString(), secondClassMethod.toGenericString(), "Methods \'%s\' and \'%s\' are not equal"));
+                }
+            } catch (NoSuchMethodException e) {
+                result.add(new Difference(second.getName(), firstClassMethod.toGenericString(), "Class \'%s\' has no method: \'%s\'"));
+            }
+        }
+
+        return result;
     }
 
     private static void appendModifiers(@NonNull Method method, @NonNull StringBuilder builder) {

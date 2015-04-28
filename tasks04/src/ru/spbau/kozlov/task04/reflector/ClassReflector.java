@@ -7,6 +7,9 @@ import ru.spbau.kozlov.task04.reflector.utils.JavaGrammarTerminals;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -25,7 +28,7 @@ public final class ClassReflector {
      * <p/>
      * Classes contained in the declared classes set are represented with their simple names.
      *
-     * @param clazz
+     * @param clazz the specified class
      * @param indent          an indent to be used
      * @param declaredClasses a set of classes defined in the original class to be reflected
      * @return a string representation of the specified class
@@ -92,5 +95,59 @@ public final class ClassReflector {
         builder.append(JavaCodeStyleConfig.NEW_LINE);
 
         return builder.toString();
+    }
+
+    /**
+     * Analyzes all the fields/constructors/methods/classes of the two specified classes and returns the difference.
+     *
+     * @param first the first class to be analyzed
+     * @param second the second class to be analyzed
+     * @return a set of {@link Difference} class instances
+     */
+    @NonNull
+    public static Set<Difference> diffClasses(@NonNull Class<?> first, @NonNull Class<?> second) {
+        Set<Difference> result = ClassHeaderReflector.diffClassHeaders(first, second);
+
+        result.addAll(FieldReflector.diffFields(first, second));
+        result.addAll(FieldReflector.diffFields(second, first));
+
+        result.addAll(ConstructorReflector.diffConstructors(first, second));
+        result.addAll(ConstructorReflector.diffConstructors(second, first));
+
+        result.addAll(MethodReflector.diffMethods(first, second));
+        result.addAll(MethodReflector.diffMethods(second, first));
+
+        result.addAll(diffDeclaredClasses(first, second));
+        result.addAll(diffDeclaredClasses(second, first));
+
+        return result;
+    }
+
+    @NonNull
+    private static Set<Difference> diffDeclaredClasses(@NonNull Class<?> first, @NonNull Class<?> second) {
+        Set<Difference> result = new LinkedHashSet<>();
+
+        Map<String, Class<?>> firstClassDeclaredClassesMap = createDeclaredClassesMap(first.getDeclaredClasses());
+        Map<String, Class<?>> secondClassDeclaredClassesMap = createDeclaredClassesMap(second.getDeclaredClasses());
+
+        for (Map.Entry<String, Class<?>> entry : firstClassDeclaredClassesMap.entrySet()) {
+            Class<?> firstClass = entry.getValue();
+            Class<?> secondClass = secondClassDeclaredClassesMap.get(entry.getKey());
+            if (!secondClassDeclaredClassesMap.containsKey(entry.getKey())) {
+                result.add(new Difference(firstClass.toGenericString(), second.toGenericString(), "Class \'%s\' is not defined in the class \'%s\'"));
+            } else {
+                diffClasses(firstClass, secondClass);
+            }
+        }
+
+        return result;
+    }
+
+    private static Map<String, Class<?>> createDeclaredClassesMap(@NonNull Class<?>[] declaredClasses) {
+        Map<String, Class<?>> firstClassDeclaredClassesMap = new HashMap<>();
+        for (Class<?> firstClassDeclaredClass : declaredClasses) {
+            firstClassDeclaredClassesMap.put(firstClassDeclaredClass.getSimpleName(), firstClassDeclaredClass);
+        }
+        return firstClassDeclaredClassesMap;
     }
 }

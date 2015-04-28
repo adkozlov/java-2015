@@ -3,7 +3,7 @@ package ru.spbau.kozlov.task04.reflector.utils;
 import checkers.nullness.quals.NonNull;
 
 /**
- * The {@link JavaCodeStyleConfig} class contains
+ * The {@link JavaCodeStyleConfig} class represents the Java code style configuration.
  *
  * @author adkozlov
  */

@@ -2,17 +2,14 @@ package ru.spbau.kozlov.task04.reflector.utils;
 
 import checkers.nullness.quals.NonNull;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
+ * The {@link ReflectorUtils} class contains methods for correct types string representation and comparison.
  *
  * @author adkozlov
  */
@@ -22,13 +19,13 @@ public final class ReflectorUtils {
     }
 
     /**
-     *
+     * Returns a string representation of the specified type.
      *
      * Classes contained in the declared classes set are represented with their simple names.
      *
-     * @param type
+     * @param type the specified type
      * @param declaredClasses a set of classes defined in the original class to be reflected
-     * @return
+     * @return a string representation
      */
     @NonNull
     public static String getTypeName(@NonNull Type type, @NonNull Set<@NonNull Class<?>> declaredClasses) {
@@ -89,7 +86,7 @@ public final class ReflectorUtils {
      * @param types an array of types
      * @param delimiter the specified delimiter
      * @param declaredClasses a set of classes defined in the original class to be reflected
-     * @return
+     * @return a string representation
      */
     @NonNull
     public static String createGenericTypesEnumerationString(@NonNull Type[] types, @NonNull String delimiter, @NonNull Set<@NonNull Class<?>> declaredClasses) {
@@ -105,11 +102,13 @@ public final class ReflectorUtils {
     }
 
     /**
+     * Returns a string representation of a sequence of the type parameters.
      *
+     * Classes contained in the declared classes set are represented with their simple names.
      *
-     * @param typeParameters
+     * @param typeParameters an array of type parameters
      * @param declaredClasses a set of classes defined in the original class to be reflected
-     * @return
+     * @return a string representation
      */
     @NonNull
     public static String createTypeParametersString(@NonNull TypeVariable<?>[] typeParameters, @NonNull Set<@NonNull Class<?>> declaredClasses) {
@@ -121,5 +120,96 @@ public final class ReflectorUtils {
         }, builder);
 
         return builder.toString();
+    }
+
+    /**
+     * Checks if two specified generic types are equal.
+     *
+     * @param first the first generic type
+     * @param second the second generic type
+     * @return {@code true} if the types are equal
+     */
+    public static boolean checkGenericTypesAreEqual(Type first, Type second) {
+        if (first == null && second == null) {
+            return true;
+        }
+        if (first == null) {
+            return false;
+        }
+        if (first.equals(second)) {
+            return true;
+        }
+        if (second == null) {
+            return false;
+        }
+        if (!(first instanceof TypeVariable<?>) || !(second instanceof TypeVariable<?>)) {
+            if (!(first instanceof ParameterizedType) || !(second instanceof ParameterizedType)) {
+                if (!(first instanceof GenericArrayType) || !(second instanceof GenericArrayType)) {
+                    if (!(first instanceof WildcardType) || !(second instanceof WildcardType)) {
+                        return false;
+                    }
+
+                    return checkWildcardTypesAreEqual((WildcardType) first, (WildcardType) second);
+                }
+
+                return checkGenericArrayTypesAreEqual((GenericArrayType) first, (GenericArrayType) second);
+            }
+
+            return checkParametrizedTypesAreEqual((ParameterizedType) first, (ParameterizedType) second);
+        }
+
+        return checkTypeVariablesAreEqual((TypeVariable<?>) first, (TypeVariable<?>) second);
+    }
+
+    private static boolean checkWildcardTypesAreEqual(@NonNull WildcardType first, @NonNull WildcardType second) {
+        return checkGenericTypesAreEqual(first.getLowerBounds(), second.getLowerBounds()) && checkGenericTypesAreEqual(first.getUpperBounds(), second.getUpperBounds());
+    }
+
+    private static boolean checkGenericArrayTypesAreEqual(@NonNull GenericArrayType first, @NonNull GenericArrayType second) {
+        return checkGenericTypesAreEqual(first.getGenericComponentType(), second.getGenericComponentType());
+    }
+
+    private static boolean checkParametrizedTypesAreEqual(@NonNull ParameterizedType first, @NonNull ParameterizedType second) {
+        if (!first.getRawType().equals(second.getRawType())) {
+            return false;
+        }
+        return checkGenericTypesAreEqual(first.getActualTypeArguments(), second.getActualTypeArguments());
+    }
+
+    private static boolean checkTypeVariablesAreEqual(@NonNull TypeVariable<?> first, @NonNull TypeVariable<?> second) {
+        if (!first.getName().equals(second.getName())) {
+            return false;
+        }
+        return !(!typeVariableBoundIsObject(first) || !typeVariableBoundIsObject(second));
+    }
+
+    private static boolean typeVariableBoundIsObject(@NonNull TypeVariable<?> typeVariable) {
+        return typeVariable.getBounds() == null || Arrays.equals(typeVariable.getBounds(), new Object[]{Object.class});
+    }
+
+    /**
+     * Checks if two arrays of generic types are equal.
+     *
+     * @param firstClassParameterTypes the first array of generic types
+     * @param secondClassParameterTypes the second array of generic types
+     * @return {@code true} if the arrays are equal
+     */
+    public static boolean checkGenericTypesAreEqual(Type[] firstClassParameterTypes, Type[] secondClassParameterTypes) {
+        if (firstClassParameterTypes == null && secondClassParameterTypes == null) {
+            return true;
+        }
+        if (firstClassParameterTypes == null || secondClassParameterTypes == null) {
+            return false;
+        }
+        if (firstClassParameterTypes.length != secondClassParameterTypes.length) {
+            return false;
+        }
+
+        for (int i = 0; i < firstClassParameterTypes.length; i++) {
+            if (!checkGenericTypesAreEqual(firstClassParameterTypes[i], secondClassParameterTypes[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 }

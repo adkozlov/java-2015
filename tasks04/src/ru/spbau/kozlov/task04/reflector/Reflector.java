@@ -11,9 +11,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
+ * The {@link Reflector} class contains methods for class analysis.
+ *
  * @author adkozlov
  */
 public final class Reflector {
@@ -22,7 +25,7 @@ public final class Reflector {
     }
 
     /**
-     *
+     * Analyzes all declared fields/constructors/methods/classes of the specified class and prints the structure to the standard output.
      *
      * @param clazz the specified class
      * @return a string representation of the specified class structure
@@ -46,11 +49,22 @@ public final class Reflector {
     }
 
     /**
-     * @param first
-     * @param second
+     * Analyzes all declared fields/constructors/methods/classes of two specified classes and prints the difference to the standard output.
+     *
+     * @param first the first class to be analyzed
+     * @param second the second class to be analyzed
      */
     public static void diffClasses(@NonNull Class<?> first, @NonNull Class<?> second) {
+        Set<Difference> result = new LinkedHashSet<>();
 
+        Package firstPackage = first.getPackage();
+        Package secondPackage = second.getPackage();
+        if (!firstPackage.equals(secondPackage)) {
+            result.add(new Difference(firstPackage.getName(), secondPackage.getName(), "Packages \'%s\' and \'%s\' are not equal"));
+        }
+
+        result.addAll(ClassReflector.diffClasses(first, second));
+        result.forEach(System.out::println);
     }
 
     private static @NonNull Set<@NonNull Class<?>> getAllDeclaredClasses(@NonNull Class<?> clazz) {
