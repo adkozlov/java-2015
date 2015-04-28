@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
+ *
+ *
  * @author adkozlov
  */
 public final class StringBuilderUtils {
@@ -28,8 +30,11 @@ public final class StringBuilderUtils {
     }
 
     /**
+     *
+     * Classes contained in the declared classes set are represented with their simple names.
+     *
      * @param argumentsTypes
-     * @param declaredClasses
+     * @param declaredClasses a set of classes defined in the original class to be reflected
      * @param builder
      */
     public static void appendArgumentsList(@NonNull Type[] argumentsTypes, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {
@@ -47,8 +52,12 @@ public final class StringBuilderUtils {
     }
 
     /**
+     *
+     *
+     * Classes contained in the declared classes set are represented with their simple names.
+     *
      * @param exceptionsTypes
-     * @param declaredClasses
+     * @param declaredClasses a set of classes defined in the original class to be reflected
      * @param builder
      */
     public static void appendThrowsList(@NonNull Type[] exceptionsTypes, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {
@@ -108,9 +117,11 @@ public final class StringBuilderUtils {
 
     /**
      *
+     * Classes contained in the declared classes set are represented with their simple names.
+     *
      * @param bounds
      * @param isUpperBound
-     * @param declaredClasses
+     * @param declaredClasses a set of classes defined in the original class to be reflected
      * @param builder
      */
     public static void appendBoundsString(@NonNull Type[] bounds, boolean isUpperBound, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {

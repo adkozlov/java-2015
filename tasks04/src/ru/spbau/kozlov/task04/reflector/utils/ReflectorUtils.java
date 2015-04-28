@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ *
+ *
  * @author adkozlov
  */
 public final class ReflectorUtils {
@@ -20,8 +22,12 @@ public final class ReflectorUtils {
     }
 
     /**
+     *
+     *
+     * Classes contained in the declared classes set are represented with their simple names.
+     *
      * @param type
-     * @param declaredClasses
+     * @param declaredClasses a set of classes defined in the original class to be reflected
      * @return
      */
     @NonNull
@@ -59,8 +65,10 @@ public final class ReflectorUtils {
     }
 
     /**
-     * @param returnValueClass
-     * @return
+     * Returns a string representation of the default value of the specified class.
+     *
+     * @param returnValueClass the specified class
+     * @return the default value
      */
     @NonNull
     public static String createDefaultValueString(@NonNull Class<?> returnValueClass) {
@@ -74,36 +82,44 @@ public final class ReflectorUtils {
     }
 
     /**
+     * Returns a string representation of the list of generic types separated with the specified delimiter.
      *
-     * @param types
-     * @param delimiter
-     * @param declaredClasses
+     * Classes contained in the declared classes set are represented with their simple names.
+     *
+     * @param types an array of types
+     * @param delimiter the specified delimiter
+     * @param declaredClasses a set of classes defined in the original class to be reflected
      * @return
      */
     @NonNull
     public static String createGenericTypesEnumerationString(@NonNull Type[] types, @NonNull String delimiter, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
+
         List<Type> typeList = Arrays.asList(types).stream().filter(type -> type != Object.class).collect(Collectors.toList());
         StringBuilderUtils.appendTypesString(typeList.toArray(new Type[typeList.size()]),
                 delimiter,
                 type -> builder.append(getTypeName(type, declaredClasses)),
                 builder);
+
         return builder.toString();
     }
 
     /**
      *
+     *
      * @param typeParameters
-     * @param declaredClasses
+     * @param declaredClasses a set of classes defined in the original class to be reflected
      * @return
      */
     @NonNull
     public static String createTypeParametersString(@NonNull TypeVariable<?>[] typeParameters, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
+
         StringBuilderUtils.appendTypeParametersString(typeParameters, typeVariable -> {
             builder.append(typeVariable.getName());
             StringBuilderUtils.appendBoundsString(typeVariable.getBounds(), true, declaredClasses, builder);
         }, builder);
+
         return builder.toString();
     }
 }
