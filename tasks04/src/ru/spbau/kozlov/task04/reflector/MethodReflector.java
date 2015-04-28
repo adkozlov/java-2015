@@ -1,17 +1,18 @@
 package ru.spbau.kozlov.task04.reflector;
 
 import checkers.nullness.quals.NonNull;
-import ru.spbau.kozlov.task04.reflector.utils.JavaFileConfig;
+import ru.spbau.kozlov.task04.reflector.utils.JavaCodeStyleConfig;
 import ru.spbau.kozlov.task04.reflector.utils.JavaGrammarTerminals;
 import ru.spbau.kozlov.task04.reflector.utils.ReflectorUtils;
 import ru.spbau.kozlov.task04.reflector.utils.StringBuilderUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.util.Set;
 
 /**
+ * The {@link MethodReflector} class analyses modifiers and the list of exceptions that can be thrown of the specified constructor.
+ *
  * @author adkozlov
  */
 public final class MethodReflector {
@@ -19,6 +20,18 @@ public final class MethodReflector {
     private MethodReflector() {
     }
 
+    /**
+     * Creates a string representation of the specified method.
+     * Modifiers, list of exceptions that can be thrown are included.
+     * The generated method returns a default value.
+     * <p/>
+     * Classes contained in the declared classes set are represented with their simple names.
+     *
+     * @param method          the specified method
+     * @param indent          an indent to be used
+     * @param declaredClasses a set of classes defined in the original class to be reflected
+     * @return a string representation of the specified method
+     */
     @NonNull
     public static String createMethodString(@NonNull Method method, @NonNull String indent, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
@@ -29,17 +42,17 @@ public final class MethodReflector {
         String typeParameters = ReflectorUtils.createTypeParametersString(method.getTypeParameters(), declaredClasses);
         if (!typeParameters.isEmpty()) {
             builder.append(typeParameters);
-            builder.append(JavaFileConfig.SPACE);
+            builder.append(JavaCodeStyleConfig.SPACE);
         }
         builder.append(ReflectorUtils.getTypeName(method.getGenericReturnType(), declaredClasses));
-        builder.append(JavaFileConfig.SPACE);
+        builder.append(JavaCodeStyleConfig.SPACE);
         builder.append(method.getName());
 
-        appendArgumentsList(method.getGenericParameterTypes(), declaredClasses, builder);
-        appendThrowsList(method.getGenericExceptionTypes(), declaredClasses, builder);
+        StringBuilderUtils.appendArgumentsList(method.getGenericParameterTypes(), declaredClasses, builder);
+        StringBuilderUtils.appendThrowsList(method.getGenericExceptionTypes(), declaredClasses, builder);
         appendMethodBody(method, indent, builder);
-        builder.append(JavaFileConfig.NEW_LINE);
-        builder.append(JavaFileConfig.NEW_LINE);
+        builder.append(JavaCodeStyleConfig.NEW_LINE);
+        builder.append(JavaCodeStyleConfig.NEW_LINE);
 
         return builder.toString();
     }
@@ -48,52 +61,27 @@ public final class MethodReflector {
         int modifiers = method.getModifiers();
         if (method.getDeclaringClass().isInterface() && !Modifier.isAbstract(modifiers)) {
             builder.append(JavaGrammarTerminals.DEFAULT_STRING);
-            builder.append(JavaFileConfig.SPACE);
+            builder.append(JavaCodeStyleConfig.SPACE);
         } else {
             StringBuilderUtils.appendModifiersString(modifiers, builder);
         }
     }
 
-    static void appendArgumentsList(@NonNull Type[] argumentsTypes, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {
-        int[] counter = new int[1];
-        builder.append(JavaGrammarTerminals.LEFT_PAREN);
-        StringBuilderUtils.appendTypesString(argumentsTypes,
-                type -> {
-                    builder.append(ReflectorUtils.getTypeName(type, declaredClasses));
-                    builder.append(JavaFileConfig.SPACE);
-                    builder.append(JavaFileConfig.createArgumentName(counter[0]));
-                    counter[0]++;
-                },
-                builder);
-        builder.append(JavaGrammarTerminals.RIGHT_PAREN);
-    }
-
-    static void appendThrowsList(@NonNull Type[] exceptionsTypes, @NonNull Set<@NonNull Class<?>> declaredClasses, @NonNull StringBuilder builder) {
-        if (exceptionsTypes.length != 0) {
-            builder.append(JavaFileConfig.SPACE);
-            builder.append(JavaGrammarTerminals.THROWS_STRING);
-            builder.append(JavaFileConfig.SPACE);
-            StringBuilderUtils.appendTypesString(exceptionsTypes,
-                    type -> builder.append(ReflectorUtils.getTypeName(type, declaredClasses)),
-                    builder);
-        }
-    }
-
     private static void appendReturnDefaultValue(@NonNull Class<?> returnValueClass, @NonNull StringBuilder builder) {
-        builder.append(JavaFileConfig.TAB);
+        builder.append(JavaCodeStyleConfig.TAB);
         builder.append(JavaGrammarTerminals.RETURN_STRING);
-        builder.append(JavaFileConfig.SPACE);
+        builder.append(JavaCodeStyleConfig.SPACE);
         builder.append(ReflectorUtils.createDefaultValueString(returnValueClass));
         builder.append(JavaGrammarTerminals.SEMICOLON);
-        builder.append(JavaFileConfig.NEW_LINE);
+        builder.append(JavaCodeStyleConfig.NEW_LINE);
     }
 
     private static void appendMethodBody(@NonNull Method method, @NonNull String indent, @NonNull StringBuilder builder) {
         int modifiers = method.getModifiers();
         if (!Modifier.isAbstract(modifiers) && !Modifier.isNative(modifiers)) {
-            builder.append(JavaFileConfig.SPACE);
+            builder.append(JavaCodeStyleConfig.SPACE);
             builder.append(JavaGrammarTerminals.LEFT_BRACE);
-            builder.append(JavaFileConfig.NEW_LINE);
+            builder.append(JavaCodeStyleConfig.NEW_LINE);
             if (method.getReturnType() != void.class) {
                 builder.append(indent);
                 appendReturnDefaultValue(method.getReturnType(), builder);

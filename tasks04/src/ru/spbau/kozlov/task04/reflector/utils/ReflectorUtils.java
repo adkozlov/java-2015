@@ -19,6 +19,11 @@ public final class ReflectorUtils {
     private ReflectorUtils() {
     }
 
+    /**
+     * @param type
+     * @param declaredClasses
+     * @return
+     */
     @NonNull
     public static String getTypeName(@NonNull Type type, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         if (type instanceof WildcardType) {
@@ -49,10 +54,14 @@ public final class ReflectorUtils {
 
     @NonNull
     private static String getSimpleName(@NonNull Type type, @NonNull Set<@NonNull Class<?>> declaredClasses) {
-        String result = type.getTypeName().replace(JavaGrammarTerminals.INNER_CLASS_DELIMITER, JavaGrammarTerminals.CLASS_DELIMITER);
-        return declaredClasses.contains(type) ? result.substring(result.lastIndexOf(JavaGrammarTerminals.CLASS_DELIMITER) + 1) : result;
+        String result = type.getTypeName().replace(JavaGrammarTerminals.INNER_CLASS_DELIMITER, JavaGrammarTerminals.NESTED_CLASS_DELIMITER);
+        return declaredClasses.contains(type) ? result.substring(result.lastIndexOf(JavaGrammarTerminals.NESTED_CLASS_DELIMITER) + 1) : result;
     }
 
+    /**
+     * @param returnValueClass
+     * @return
+     */
     @NonNull
     public static String createDefaultValueString(@NonNull Class<?> returnValueClass) {
         if (!returnValueClass.isPrimitive()) {
@@ -64,6 +73,13 @@ public final class ReflectorUtils {
         }
     }
 
+    /**
+     *
+     * @param types
+     * @param delimiter
+     * @param declaredClasses
+     * @return
+     */
     @NonNull
     public static String createGenericTypesEnumerationString(@NonNull Type[] types, @NonNull String delimiter, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
@@ -75,6 +91,12 @@ public final class ReflectorUtils {
         return builder.toString();
     }
 
+    /**
+     *
+     * @param typeParameters
+     * @param declaredClasses
+     * @return
+     */
     @NonNull
     public static String createTypeParametersString(@NonNull TypeVariable<?>[] typeParameters, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();

@@ -1,7 +1,7 @@
 package ru.spbau.kozlov.task04.reflector;
 
 import checkers.nullness.quals.NonNull;
-import ru.spbau.kozlov.task04.reflector.utils.JavaFileConfig;
+import ru.spbau.kozlov.task04.reflector.utils.JavaCodeStyleConfig;
 import ru.spbau.kozlov.task04.reflector.utils.JavaGrammarTerminals;
 import ru.spbau.kozlov.task04.reflector.utils.StringBuilderUtils;
 
@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Set;
 
 /**
+ * The {@link ConstructorReflector} class analyses modifiers and the list of exceptions that can be thrown of the specified constructor.
+ *
  * @author adkozlov
  */
 public final class ConstructorReflector {
@@ -19,6 +21,18 @@ public final class ConstructorReflector {
     private ConstructorReflector() {
     }
 
+    /**
+     * Creates a string representation of the specified constructor.
+     * Modifiers, list of exceptions that can be thrown are included.
+     * The generated constructor calls the constructor of the superclass.
+     * <p/>
+     * Classes contained in the declared classes set are represented with their simple names.
+     *
+     * @param constructor     the specified constructor
+     * @param indent          an indent to be used
+     * @param declaredClasses a set of classes defined in the original class to be reflected
+     * @return a string representation of the specified constructor
+     */
     @NonNull
     public static String createConstructorString(@NonNull Constructor<?> constructor, @NonNull String indent, @NonNull Set<@NonNull Class<?>> declaredClasses) {
         StringBuilder builder = new StringBuilder();
@@ -28,24 +42,24 @@ public final class ConstructorReflector {
 
         Type[] genericParameterTypes = getGenericParameterTypes(constructor);
         builder.append(constructor.getDeclaringClass().getSimpleName());
-        MethodReflector.appendArgumentsList(genericParameterTypes, declaredClasses, builder);
-        MethodReflector.appendThrowsList(constructor.getGenericExceptionTypes(), declaredClasses, builder);
+        StringBuilderUtils.appendArgumentsList(genericParameterTypes, declaredClasses, builder);
+        StringBuilderUtils.appendThrowsList(constructor.getGenericExceptionTypes(), declaredClasses, builder);
 
-        builder.append(JavaFileConfig.SPACE);
+        builder.append(JavaCodeStyleConfig.SPACE);
         builder.append(JavaGrammarTerminals.LEFT_BRACE);
-        builder.append(JavaFileConfig.NEW_LINE);
+        builder.append(JavaCodeStyleConfig.NEW_LINE);
         appendSuperConstructorInvocation(constructor, genericParameterTypes.length, indent, builder);
         builder.append(indent);
         builder.append(JavaGrammarTerminals.RIGHT_BRACE);
-        builder.append(JavaFileConfig.NEW_LINE);
-        builder.append(JavaFileConfig.NEW_LINE);
+        builder.append(JavaCodeStyleConfig.NEW_LINE);
+        builder.append(JavaCodeStyleConfig.NEW_LINE);
 
         return builder.toString();
     }
 
-    public static void appendSuperConstructorInvocation(@NonNull Constructor<?> constructor, int actualParameterCount, @NonNull String indent, @NonNull StringBuilder builder) {
+    private static void appendSuperConstructorInvocation(@NonNull Constructor<?> constructor, int actualParameterCount, @NonNull String indent, @NonNull StringBuilder builder) {
         builder.append(indent);
-        builder.append(JavaFileConfig.TAB);
+        builder.append(JavaCodeStyleConfig.TAB);
         builder.append(JavaGrammarTerminals.SUPER_STRING);
         builder.append(JavaGrammarTerminals.LEFT_PAREN);
 
@@ -60,11 +74,11 @@ public final class ConstructorReflector {
 
                 int parametersCount = Math.min(actualParameterCount, minParameterCount - getHiddenParameterCount(superClass));
                 if (parametersCount != 0) {
-                    builder.append(JavaFileConfig.createArgumentName(0));
+                    builder.append(JavaCodeStyleConfig.createArgumentName(0));
                     for (int i = 1; i < parametersCount; i++) {
                         builder.append(JavaGrammarTerminals.COMMA);
-                        builder.append(JavaFileConfig.SPACE);
-                        builder.append(JavaFileConfig.createArgumentName(i));
+                        builder.append(JavaCodeStyleConfig.SPACE);
+                        builder.append(JavaCodeStyleConfig.createArgumentName(i));
                     }
                 }
             }
@@ -72,7 +86,7 @@ public final class ConstructorReflector {
 
         builder.append(JavaGrammarTerminals.RIGHT_PAREN);
         builder.append(JavaGrammarTerminals.SEMICOLON);
-        builder.append(JavaFileConfig.NEW_LINE);
+        builder.append(JavaCodeStyleConfig.NEW_LINE);
     }
 
     private static boolean isInnerClassConstructor(@NonNull Constructor<?> constructor) {
