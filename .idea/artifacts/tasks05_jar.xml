@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="tasks05:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/tasks05</output-path>
+    <root id="archive" name="tasks05.jar">
+      <element id="dir-copy" path="$PROJECT_DIR$/cw02/src" />
+      <element id="dir-copy" path="$PROJECT_DIR$/tasks05/tests" />
+    </root>
+  </artifact>
+</component>
